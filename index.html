@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Tracker Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-color: #d1ff4e; /* Volt green/yellow */
+            --accent-glow: rgba(209, 255, 78, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 2rem;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .brand {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* Tabs Styling */
+        .tabs-container {
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+            background: rgba(10, 10, 12, 0.8);
+            backdrop-filter: blur(12px);
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--card-border);
+            display: flex;
+            gap: 0.25rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            flex: 1;
+            text-align: center;
+            border: none;
+            background: transparent;
+        }
+
+        .tab.active {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        /* Content Area */
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .day-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .day-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 1.25rem;
+            background: var(--accent-color);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .exercise-item {
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .exercise-item:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.05rem;
+        }
+
+        .exercise-sets {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .exercise-details {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            align-items: center;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .rest-badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .note {
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .extra-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 1rem;
+            background: rgba(209, 255, 78, 0.05);
+            border: 1px dashed var(--accent-color);
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-muted);
+        }
+
+        /* Rest Timer Tooltip Placeholder */
+        .timer-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            transition: var(--transition);
+        }
+
+        .timer-btn:hover {
+            color: var(--accent-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.75rem; }
+            .content-card { padding: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">IRON PROTOCOL</div>
+            <h1>Meu Treino</h1>
+        </header>
+
+        <nav class="tabs-container" id="tabs">
+            <!-- Tabs will be injected here -->
+        </nav>
+
+        <main id="main-content">
+            <!-- Workout content will be injected here -->
+        </main>
+    </div>
+
+    <script id="workout-data" type="application/json">
+    {
+        "SEG": {
+            "title": "SEGUNDA — OMBRO",
+            "exercises": [
+                { "name": "Desenvolvimento com halteres", "sets": "4x6–8", "rest": "3min" },
+                { "name": "Elevação lateral com halteres", "sets": "4x10–12", "rest": "90s" },
+                { "name": "Elevação lateral na polia baixa", "sets": "3x12–15", "rest": "90s" },
+                { "name": "Remada alta na polia", "sets": "4x8–10", "rest": "2min" },
+                { "name": "Face pull", "sets": "3x12–15", "rest": "90s" }
+            ]
+        },
+        "TER": {
+            "title": "TERÇA — PUSH (Peito + Tríceps)",
+            "exercises": [
+                { "name": "Supino reto com barra", "sets": "4x6–8", "rest": "3min" },
+                { "name": "Supino inclinado com halteres", "sets": "4x8–10", "rest": "2min" },
+                { "name": "Crossover no cabo", "sets": "3x12–15", "rest": "90s" },
+                { "name": "Mergulho no paralelo", "sets": "3x10–12", "rest": "90s" },
+                { "name": "Tríceps testa com barra", "sets": "4x8–10", "rest": "2min" },
+                { "name": "Tríceps polia corda", "sets": "3x12–15", "rest": "90s" }
+            ]
+        },
+        "QUA": {
+            "title": "QUARTA — PULL (Costas + Bíceps)",
+            "exercises": [
+                { "name": "Remada curvada com barra", "sets": "4x6–8", "rest": "3min" },
+                { "name": "Puxada frontal aberta", "sets": "4x8–10", "rest": "2min" },
+                { "name": "Remada unilateral com haltere", "sets": "3x10–12", "rest": "90s" },
+                { "name": "Crucifixo inverso (posterior de ombro)", "sets": "3x12–15", "rest": "90s" },
+                { "name": "Rosca direta com barra", "sets": "4x8–10", "note": "superset ↓" },
+                { "name": "Rosca martelo", "sets": "3x10–12", "rest": "2min após o superset" }
+            ]
+        },
+        "QUI": {
+            "title": "QUINTA — LEGS (Posterior + Adutor)",
+            "exercises": [
+                { "name": "Hack squat", "sets": "4x6–8", "rest": "3min" },
+                { "name": "Cadeira flexora", "sets": "4x10–12", "rest": "2min" },
+                { "name": "Stiff com barra", "sets": "4x8–10", "rest": "2min" },
+                { "name": "Agachamento sumô com haltere", "sets": "3x10–12", "rest": "2min" },
+                { "name": "Adução na máquina", "sets": "3x12–15", "rest": "90s" },
+                { "name": "Panturrilha em pé", "sets": "4x12–15", "rest": "60s" }
+            ]
+        },
+        "SEX": {
+            "title": "SEXTA — UPPER (Peito + Costas)",
+            "exercises": [
+                { "name": "Supino inclinado com barra", "sets": "4x5–6", "rest": "3min" },
+                { "name": "Remada cavalinho", "sets": "4x5–6", "rest": "3min" },
+                { "name": "Crucifixo inclinado", "sets": "3x12–15", "rest": "90s" },
+                { "name": "Supino declinado com halteres", "sets": "3x8–10", "rest": "2min" },
+                { "name": "Puxada neutra", "sets": "3x8–10", "rest": "2min" },
+                { "name": "Remada na polia baixa (barra W)", "sets": "3x10–12", "rest": "90s" }
+            ],
+            "extra": "🥊 Boxe à noite"
+        },
+        "SAB": {
+            "title": "SÁBADO — DESCANSO",
+            "exercises": [],
+            "extra": "🎾 Descanso da musculação • Tênis de manhã"
+        },
+        "DOM": {
+            "title": "DOMINGO — LEGS (Quad + Vasto Medial)",
+            "exercises": [
+                { "name": "Agachamento livre", "sets": "4x8–10", "rest": "2min" },
+                { "name": "Cadeira extensora", "sets": "4x10–12", "rest": "90s", "note": "última série: drop set" },
+                { "name": "Leg press pé baixo e fechado", "sets": "4x10–12", "rest": "2min" },
+                { "name": "Búlgaro", "sets": "3x10–12 cada perna", "rest": "2min" },
+                { "name": "Panturrilha sentado", "sets": "4x12–15", "rest": "60s" }
+            ]
+        }
+    }
+    </script>
+
+    <script>
+        const workoutData = JSON.parse(document.getElementById('workout-data').textContent);
+        const tabsContainer = document.getElementById('tabs');
+        const mainContent = document.getElementById('main-content');
+        
+        const dayMap = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+        
+        function init() {
+            renderTabs();
+            const today = dayMap[new Date().getDay()];
+            showWorkout(today);
+        }
+
+        function renderTabs() {
+            tabsContainer.innerHTML = '';
+            dayMap.forEach(day => {
+                const btn = document.createElement('button');
+                btn.className = 'tab';
+                btn.textContent = day;
+                btn.onclick = () => showWorkout(day);
+                btn.id = `tab-${day}`;
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function showWorkout(day) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${day}`).classList.add('active');
+            
+            const data = workoutData[day];
+            
+            let html = `
+                <div class="content-card">
+                    <h2 class="day-title">${data.title}</h2>
+                    <div class="exercise-list">
+            `;
+            
+            if (data.exercises.length === 0) {
+                html += `<div class="empty-state">Sem musculação hoje. Aproveite o descanso ou pratique outro esporte!</div>`;
+            } else {
+                data.exercises.forEach(ex => {
+                    html += `
+                        <div class="exercise-item">
+                            <div class="exercise-header">
+                                <span class="exercise-name">${ex.name}</span>
+                                <span class="exercise-sets">${ex.sets}</span>
+                            </div>
+                            <div class="exercise-details">
+                                ${ex.rest ? `<span class="rest-badge">⏱️ ${ex.rest}</span>` : ''}
+                            </div>
+                            ${ex.note ? `<div class="note">${ex.note}</div>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div>`;
+            
+            if (data.extra) {
+                html += `
+                    <div class="extra-info">
+                        <span>✨</span>
+                        <span>${data.extra}</span>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+            mainContent.innerHTML = html;
+
+            // Scroll tab into view if needed
+            document.getElementById(`tab-${day}`).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
+        init();
+    </script>
+</body>
+</html>
