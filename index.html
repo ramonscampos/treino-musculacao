@@ -39,14 +39,16 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        html {
-            scrollbar-width: none;
-        }
-        html::-webkit-scrollbar { display: none; }
+        /* Chrome, Safari, Edge */
+        ::-webkit-scrollbar { display: none; }
 
-        /* iOS Safari: esconde scrollbar em qualquer elemento que role */
-        *::-webkit-scrollbar { display: none; }
-        * { scrollbar-width: none; }
+        /* Firefox */
+        html { scrollbar-width: none; }
+
+        /* IE (foda-se, mas tá aí) */
+        html { -ms-overflow-style: none; }
+
+        body::-webkit-scrollbar { display: none; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -57,7 +59,6 @@
             padding-bottom: calc(2rem + var(--safe-bottom));
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            scrollbar-width: none;
         }
 
         body::-webkit-scrollbar { display: none; }
