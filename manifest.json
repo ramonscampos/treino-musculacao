@@ -1,0 +1,18 @@
+{
+  "name": "Iron Protocol",
+  "short_name": "Iron",
+  "description": "Rastreador de treinos de musculação",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

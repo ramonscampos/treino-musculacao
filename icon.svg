@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0a0a0c" rx="100"/>
+  <path d="M128 200h40v112h-40zM344 200h40v112h-40zM152 232h208v48H152z" fill="#d1ff4e"/>
+  <rect x="80" y="176" width="24" height="160" fill="#d1ff4e" rx="8"/>
+  <rect x="408" y="176" width="24" height="160" fill="#d1ff4e" rx="8"/>
+  <text x="50%" y="420" font-family="sans-serif" font-weight="bold" font-size="64" fill="#d1ff4e" text-anchor="middle">IRON</text>
+</svg>
