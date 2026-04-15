@@ -39,6 +39,11 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html {
+            scrollbar-width: none;
+        }
+        html::-webkit-scrollbar { display: none; }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
@@ -296,20 +301,21 @@
 
         /* ===== COMPLETE WORKOUT BUTTON ===== */
         .btn-complete {
-            padding: 0.5rem 1rem;
-            border-radius: 0.75rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 0.65rem;
             border: 1.5px solid var(--accent-color);
             background: transparent;
             color: var(--accent-color);
-            font-size: 0.8rem;
+            font-size: 1.1rem;
             font-weight: 700;
             font-family: 'Inter', sans-serif;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            white-space: nowrap;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
         .btn-complete:active {
@@ -326,17 +332,18 @@
         }
 
         .completed-badge {
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 0.9rem;
-            border-radius: 0.75rem;
+            justify-content: center;
+            border-radius: 0.65rem;
             background: var(--success-bg);
             border: 1.5px solid var(--success);
             color: var(--success);
-            font-size: 0.8rem;
+            font-size: 1rem;
             font-weight: 700;
-            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .btn-undo {
@@ -1244,15 +1251,13 @@
         if (data.exercises.length > 0) {
             if (completed) {
                 html += `<div class="completed-row">
-                    <div class="completed-badge">✓ Concluído</div>
-                    <button class="btn-undo" onclick="toggleCompleted('${day}')" title="Desfazer">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    <div class="completed-badge">✓</div>
+                    <button type="button" class="btn-undo" onclick="toggleCompleted('${day}')" title="Desfazer" aria-label="Desfazer conclusão">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                     </button>
                 </div>`;
             } else {
-                html += `<button class="btn-complete" onclick="toggleCompleted('${day}')">
-                    + Concluir
-                </button>`;
+                html += `<button type="button" class="btn-complete" onclick="toggleCompleted('${day}')" aria-label="Concluir treino">+</button>`;
             }
         }
 
