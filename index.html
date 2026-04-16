@@ -186,8 +186,8 @@
         }
 
         .overview-dot.missed {
-            border-color: rgba(255, 78, 78, 0.4);
-            background: rgba(255, 78, 78, 0.06);
+            border-color: rgba(255, 78, 78, 0.6);
+            background: rgba(255, 78, 78, 0.15);
         }
 
         .overview-dot.today {
@@ -584,77 +584,178 @@
             color: #000;
         }
 
-        /* History log list */
-        .history-log {
+        /* ===== CALENDAR ===== */
+        .calendar-section {
+            margin-top: 1.5rem;
+        }
+
+        .calendar-header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
             gap: 0.5rem;
         }
 
-        .history-entry {
+        .btn-calendar-nav {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1rem;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-calendar-nav:hover {
+            background: rgba(209, 255, 78, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .calendar-month-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--card-border);
-            border-radius: 0.75rem;
+            padding: 1rem;
+            border-radius: 1.25rem;
         }
 
-        .history-entry-left {
+        .calendar-weekday {
+            font-size: 0.65rem;
+            text-align: center;
+            color: var(--text-primary);
+            font-weight: 800;
+            padding: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.4rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-        }
-
-        .history-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent-color);
-            flex-shrink: 0;
-        }
-
-        .history-date {
-            font-size: 0.85rem;
+            justify-content: center;
+            font-size: 0.8rem;
             font-weight: 600;
-        }
-
-        .history-day-label {
-            font-size: 0.75rem;
             color: var(--text-muted);
+            border-radius: 0.6rem;
+            position: relative;
+            transition: var(--transition);
         }
 
-        .history-workout-badge {
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0.2rem 0.6rem;
-            background: rgba(209, 255, 78, 0.1);
-            border: 1px solid rgba(209, 255, 78, 0.3);
+        .calendar-day.empty { visibility: hidden; }
+
+        /* Bolinhas menores */
+        .calendar-day.trained::after {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            z-index: 1;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .calendar-day.trained {
+            color: #000 !important;
+            z-index: 2;
+        }
+
+        .calendar-day span {
+            position: relative;
+            z-index: 3;
+        }
+
+        .calendar-day.missed {
+            color: rgba(255, 78, 78, 0.8);
+        }
+
+        .calendar-day.missed::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border: 1.5px solid rgba(255, 78, 78, 0.4);
+            border-radius: 50%;
+        }
+
+        .calendar-day.today:not(.trained) {
             color: var(--accent-color);
-            border-radius: 0.5rem;
+        }
+
+        .calendar-day.today::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border: 1px solid var(--accent-color);
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+
+        .calendar-day.today.trained::before {
+            border: 1px solid var(--accent-color);
+            opacity: 0.8;
+            inset: -2px;
         }
 
         /* Load history */
         .load-history-item {
-            padding: 0.75rem 1rem;
+            padding: 1.25rem 1rem;
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--card-border);
-            border-radius: 0.75rem;
-            margin-bottom: 0.5rem;
+            border-radius: 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .load-group-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: var(--accent-color);
+            font-weight: 700;
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: -0.5rem;
         }
 
         .load-history-name {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.8rem;
+            text-align: center;
+            color: var(--text-secondary);
         }
 
         .load-history-chart {
             display: flex;
             align-items: flex-end;
-            gap: 0.3rem;
-            height: 32px;
+            justify-content: center;
+            gap: 0.6rem;
+            height: 54px;
+            margin-top: 1rem;
+            padding-bottom: 4px;
         }
 
         .load-bar-wrap {
@@ -663,20 +764,24 @@
             align-items: center;
             gap: 0.2rem;
             flex: 1;
+            max-width: 32px;
         }
 
         .load-bar {
             width: 100%;
             background: var(--accent-color);
-            border-radius: 3px 3px 0 0;
+            border-radius: 2px 2px 0 0;
             min-height: 4px;
             transition: var(--transition);
         }
 
         .load-bar-val {
-            font-size: 0.55rem;
-            color: var(--text-muted);
+            font-size: 0.75rem;
+            color: var(--text-primary);
             white-space: nowrap;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            margin-top: 0.2rem;
         }
 
         .empty-history {
@@ -828,6 +933,11 @@
             border-color: var(--accent-color);
         }
 
+        .dash-week-dot.missed {
+            border-color: rgba(255, 78, 78, 0.6);
+            background: rgba(255, 78, 78, 0.15);
+        }
+
         .dash-week-label {
             font-size: 0.6rem;
             color: var(--text-muted);
@@ -948,10 +1058,21 @@
                 <div id="load-history-list"></div>
             </div>
 
-            <!-- Histórico completo -->
-            <div style="margin-top: 1.5rem;">
-                <div class="history-section-title" style="margin-bottom: 0.75rem;">Histórico completo</div>
-                <div class="history-log" id="history-log"></div>
+            <!-- Calendário mensal -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <div class="history-section-title" style="margin-bottom: 0;">Frequência Mensal</div>
+                    <div class="calendar-nav">
+                        <button type="button" class="btn-calendar-nav" onclick="changeMonth(-1)" aria-label="Mês anterior">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        </button>
+                        <div class="calendar-month-name" id="calendar-month-name">Abril 2026</div>
+                        <button type="button" class="btn-calendar-nav" onclick="changeMonth(1)" aria-label="Próximo mês">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendar-grid"></div>
             </div>
         </div>
     </div>
@@ -1055,6 +1176,11 @@
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
+    function todayStrCode() {
+        // dayMap é definido abaixo, então usaremos a lógica direta aqui ou moveremos dayMap
+        return ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'][new Date().getDay()];
+    }
+
     function formatDate(str) {
         const [y, m, d] = str.split('-');
         return `${d}/${m}/${y}`;
@@ -1111,17 +1237,22 @@
     // Ordem: Seg, Ter, Qua, Qui, Sex, Sáb, Dom
     const dayMap = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
     const dayNames = { DOM: 'Dom', SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sáb' };
-    // Ordem de exibição nas tabs (Seg → Dom)
     const tabOrder = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
-
-    let currentDay = dayMap[new Date().getDay()];
-    let currentView = 'workout'; // 'workout' | 'history'
+    const IDX_TO_DAY = tabOrder;
+    
+    let currentDay = todayStrCode();
+    let currentView = 'workout'; // 'workout', 'dashboard'
+    
+    // Estado do calendário
+    const calState = {
+        month: new Date().getMonth(),
+        year: new Date().getFullYear()
+    };
 
     // ============================================================
     //  WEEK OVERVIEW DOTS (acima dos tabs)
     // ============================================================
     // Mapeia índice do loop (0=Seg...6=Dom) para código do dia
-    const IDX_TO_DAY = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'];
 
     function getWeekRange() {
         const today = new Date();
@@ -1204,14 +1335,22 @@
     // ============================================================
     function isTodayCompleted(day) {
         const data = loadData();
-        return data.history.some(e => e.date === todayStr() && e.day === day);
+        const targetDate = getTargetDate(day);
+        return data.history.some(e => e.date === targetDate && e.day === day);
     }
 
-    function getLastLoad(exerciseName) {
-        const data = loadData();
-        const entries = (data.loads[exerciseName] || []);
-        return entries.length ? entries[entries.length - 1] : null;
+    // Retorna a data (YYYY-MM-DD) do dia da semana correspondente na semana ATUAL
+    function getTargetDate(dayCode) {
+        const { monday } = getWeekRange();
+        const dayIdx = IDX_TO_DAY.indexOf(dayCode);
+        if (dayIdx === -1) return todayStr();
+
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + dayIdx);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
+
+
 
     function saveLoad(exerciseName, value) {
         if (!value.trim()) return;
@@ -1231,13 +1370,13 @@
 
     function toggleCompleted(day) {
         const data = loadData();
-        const today = todayStr();
-        const idx = data.history.findIndex(e => e.date === today && e.day === day);
+        const targetDate = getTargetDate(day);
+        const idx = data.history.findIndex(e => e.date === targetDate && e.day === day);
         if (idx >= 0) {
             data.history.splice(idx, 1);
             showToast('Treino desmarcado');
         } else {
-            data.history.push({ date: today, day });
+            data.history.push({ date: targetDate, day });
             showToast('✅ Treino concluído!');
         }
         saveData(data);
@@ -1248,6 +1387,7 @@
         const main = document.getElementById('main-content');
         const data = workoutData[day];
         const completed = isTodayCompleted(day);
+        const appData = loadData();
 
         let html = `<div class="content-card">
             <div class="day-header">
@@ -1272,8 +1412,13 @@
             html += `<div class="empty-state">Sem musculação hoje. Aproveite o descanso! 🛌</div>`;
         } else {
             data.exercises.forEach((ex, i) => {
-                const lastLoad = getLastLoad(ex.name);
+                const allLoads = appData.loads[ex.name] || [];
+                // Ordena decrescente pela data para garantir que o primeiro é o mais atual
+                const sorted = [...allLoads].sort((a,b) => b.date.localeCompare(a.date));
+                const currentVal = sorted.length > 0 ? sorted[0].value : '';
+                const prevVal = sorted.length > 1 ? sorted[1].value : null;
                 const exId = `ex-${day}-${i}`;
+
                 html += `<div class="exercise-item">
                     <div class="exercise-header">
                         <span class="exercise-name">${ex.name}</span>
@@ -1285,7 +1430,7 @@
                     </div>
                     <div class="load-row">
                         <span class="load-label">Carga:</span>
-                        ${lastLoad ? `<span class="load-prev">anterior: <span>${lastLoad.value}</span></span>` : ''}
+                        ${prevVal ? `<span class="load-prev">anterior: <span>${prevVal}</span></span>` : ''}
                         <div class="load-input-wrap">
                             <input
                                 class="load-input"
@@ -1293,7 +1438,7 @@
                                 type="text"
                                 inputmode="decimal"
                                 placeholder="ex: 20"
-                                value=""
+                                value="${currentVal}"
                                 onchange="saveLoad('${ex.name.replace(/'/g, "\\'")}', this.value)"
                                 onblur="saveLoad('${ex.name.replace(/'/g, "\\'")}', this.value)"
                             >
@@ -1326,50 +1471,153 @@
         // Load history chart
         const loadSection = document.getElementById('load-history-list');
         loadSection.innerHTML = '';
-        const exercisesWithLoads = Object.entries(data.loads).filter(([, entries]) => entries.length > 0);
-        if (exercisesWithLoads.length === 0) {
-            loadSection.innerHTML = `<div class="empty-history">Nenhuma carga registrada ainda.</div>`;
-        } else {
-            exercisesWithLoads.forEach(([name, entries]) => {
-                const last5 = entries.slice(-5);
-                const numVals = last5.map(e => parseFloat(e.value) || 0);
-                const maxVal = Math.max(...numVals, 1);
-                const barsHtml = last5.map(e => {
-                    const h = Math.max(4, Math.round((parseFloat(e.value) / maxVal) * 32));
-                    return `<div class="load-bar-wrap">
-                        <div class="load-bar" style="height:${h}px"></div>
-                        <div class="load-bar-val">${e.value}</div>
-                    </div>`;
-                }).join('');
+        
+        // Mapeia quais exercícios já foram exibidos (para evitar duplicatas se um ex estiver em 2 dias)
+        const displayedExercises = new Set();
+        let anyDisplayed = false;
 
-                loadSection.innerHTML += `<div class="load-history-item">
-                    <div class="load-history-name">${name}</div>
-                    <div class="load-history-chart">${barsHtml}</div>
-                </div>`;
+        // 1. Agrupar por dia de treino (usando tabOrder para manter a ordem Seg -> Dom)
+        tabOrder.forEach(dayCode => {
+            const dayData = workoutData[dayCode];
+            const matchingEx = dayData.exercises.filter(ex => {
+                const loads = data.loads[ex.name] || [];
+                return loads.length >= 2 && !displayedExercises.has(ex.name);
             });
+
+            if (matchingEx.length > 0) {
+                anyDisplayed = true;
+                let groupHtml = `<div class="load-history-item">
+                    <div class="load-group-title">${dayData.title}</div>`;
+                
+                matchingEx.forEach(ex => {
+                    displayedExercises.add(ex.name);
+                    groupHtml += renderSingleExerciseChart(ex.name, data.loads[ex.name]);
+                });
+                
+                groupHtml += `</div>`;
+                loadSection.innerHTML += groupHtml;
+            }
+        });
+
+        // 2. Grupo "OUTROS" para exercícios que não estão no cronograma atual mas têm dados
+        const otherEx = Object.entries(data.loads).filter(([name, entries]) => {
+            return entries.length >= 2 && !displayedExercises.has(name);
+        });
+
+        if (otherEx.length > 0) {
+            anyDisplayed = true;
+            let groupHtml = `<div class="load-history-item">
+                <div class="load-group-title">OUTROS / ANTIGOS</div>`;
+            
+            otherEx.forEach(([name, entries]) => {
+                groupHtml += renderSingleExerciseChart(name, entries);
+            });
+            
+            groupHtml += `</div>`;
+            loadSection.innerHTML += groupHtml;
         }
 
-        // Full history log
-        const log = document.getElementById('history-log');
-        if (!history.length) {
-            log.innerHTML = `<div class="empty-history">Nenhum treino registrado ainda.<br>Marque como concluído ao terminar!</div>`;
-            return;
+        if (!anyDisplayed) {
+            loadSection.innerHTML = `<div class="empty-history">Continue treinando para ver sua evolução aqui! (Mínimo 2 registros por exercício)</div>`;
         }
 
-        const sorted = [...history].sort((a, b) => b.date.localeCompare(a.date));
-        log.innerHTML = sorted.map(e => {
-            const dayTitle = workoutData[e.day]?.title || e.day;
-            return `<div class="history-entry">
-                <div class="history-entry-left">
-                    <div class="history-dot"></div>
-                    <div>
-                        <div class="history-date">${formatDate(e.date)}</div>
-                        <div class="history-day-label">${dayTitle}</div>
-                    </div>
-                </div>
-                <div class="history-workout-badge">${e.day}</div>
+        function renderSingleExerciseChart(name, entries) {
+            // Garante ordenação cronológica antes de exibir
+            const sortedEntries = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+            const last5 = sortedEntries.slice(-5);
+            const numVals = last5.map(e => parseFloat(e.value) || 0);
+            const maxVal = Math.max(...numVals, 1);
+            
+            const barsHtml = last5.map(e => {
+                const h = Math.max(4, Math.round((parseFloat(e.value) / maxVal) * 38));
+                return `<div class="load-bar-wrap">
+                    <div class="load-bar" style="height:${h}px"></div>
+                    <div class="load-bar-val">${e.value}</div>
+                </div>`;
+            }).join('');
+
+            return `<div>
+                <div class="load-history-name">${name}</div>
+                <div class="load-history-chart">${barsHtml}</div>
             </div>`;
-        }).join('');
+        }
+
+        // Calendário mensal
+        renderCalendar(data.history);
+    }
+
+    function changeMonth(delta) {
+        calState.month += delta;
+        if (calState.month < 0) {
+            calState.month = 11;
+            calState.year--;
+        } else if (calState.month > 11) {
+            calState.month = 0;
+            calState.year++;
+        }
+        const data = loadData();
+        renderCalendar(data.history);
+    }
+
+    function renderCalendar(history) {
+        const grid = document.getElementById('calendar-grid');
+        const monthLabel = document.getElementById('calendar-month-name');
+        if (!grid || !monthLabel) return;
+
+        const year = calState.year;
+        const month = calState.month; // 0-11
+
+        const monthNames = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ];
+        monthLabel.textContent = `${monthNames[month]} ${year}`;
+
+        // Primeiro dia do mês e total de dias
+        const firstDay = new Date(year, month, 1).getDay(); // 0=Dom
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Dias treinados neste mês (Set de números apenas)
+        const trainedDays = new Set();
+        history.forEach(e => {
+            if (!e.date) return;
+            const pts = e.date.split('-');
+            if (parseInt(pts[0]) === year && parseInt(pts[1]) === (month + 1)) {
+                trainedDays.add(parseInt(pts[2]));
+            }
+        });
+
+        const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+        let html = weekDays.map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+
+        // Células vazias antes do dia 1
+        for (let i = 0; i < firstDay; i++) {
+            html += `<div class="calendar-day empty"></div>`;
+        }
+
+        const actualToday = new Date();
+        for (let d = 1; d <= daysInMonth; d++) {
+            const isTrained = trainedDays.has(d);
+            const isToday = d === actualToday.getDate() && 
+                             month === actualToday.getMonth() && 
+                             year === actualToday.getFullYear();
+            
+            // Lógica de Falta: (Dia passado) E (Não treinado) E (Não é Domingo)
+            // Para simplificar: Domingo é a primeira coluna (index 0)
+            const dateObj = new Date(year, month, d);
+            const isPast = dateObj < actualToday && !isToday;
+            const isSunday = dateObj.getDay() === 0;
+            const isMissed = isPast && !isTrained && !isSunday;
+
+            let cls = 'calendar-day';
+            if (isTrained) cls += ' trained';
+            if (isToday) cls += ' today';
+            if (isMissed) cls += ' missed';
+            
+            html += `<div class="${cls}"><span>${d}</span></div>`;
+        }
+
+        grid.innerHTML = html;
     }
 
     // ============================================================
@@ -1421,6 +1669,8 @@
             let dc = 'dash-week-dot';
             if (isSunday) dc += ' rest';
             else if (trained) dc += ' trained';
+            else if (!isFuture && !isToday) dc += ' missed';
+            
             if (isToday) dc += ' today';
 
             weekHtml += `<div class="dash-week-dot-wrap">
@@ -1461,6 +1711,11 @@
         renderTabs();
         renderStreak();
         renderWorkout(currentDay);
+        
+        // Se o dashboard estiver aberto, atualiza também
+        if (document.getElementById('dashboard-overlay').classList.contains('active')) {
+            renderHistoryContent();
+        }
     }
 
     // ============================================================
@@ -1471,6 +1726,15 @@
             navigator.serviceWorker.register('./sw.js').catch(() => {});
         });
     }
+
+    // ============================================================
+    //  RELOAD ON RESUME
+    // ============================================================
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    });
 
     // ============================================================
     //  INIT
