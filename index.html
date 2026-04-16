@@ -1006,6 +1006,20 @@
             .content-card { padding: 1.1rem; }
             .overview-dot { width: 22px; height: 22px; }
         }
+        .btn-nuke {
+            margin-top: 3rem;
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 78, 78, 0.05);
+            border: 1px dashed rgba(255, 78, 78, 0.3);
+            color: rgba(255, 78, 78, 0.8);
+            border-radius: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
     </style>
 </head>
 <body>
@@ -1106,6 +1120,8 @@
                 </div>
                 <div class="calendar-grid" id="calendar-grid"></div>
             </div>
+
+            <button class="btn-nuke" onclick="nukeData()">⚠️ Limpar todos os dados (Temporário)</button>
         </div>
     </div>
 
@@ -1614,6 +1630,13 @@
         }
         const data = loadData();
         renderCalendar(data.history);
+    }
+
+    function nukeData() {
+        if (confirm("⚠️ ATENÇÃO: Isso vai apagar TODO o seu histórico e cargas permanentemente. Confirma?")) {
+            localStorage.clear();
+            location.reload();
+        }
     }
 
     function renderCalendar(history) {
