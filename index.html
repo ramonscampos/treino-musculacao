@@ -54,7 +54,6 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
-            min-height: 100vh;
             min-height: 100dvh;
             padding-bottom: calc(2rem + var(--safe-bottom));
             line-height: 1.5;
@@ -945,6 +944,38 @@
             text-transform: uppercase;
         }
 
+        /* Dash Tabs */
+        .dash-tabs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .dash-tabs::-webkit-scrollbar { display: none; }
+
+        .dash-tab {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 2rem;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dash-tab.active {
+            background: rgba(209, 255, 78, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
         /* ===== TOAST ===== */
         .toast {
             position: fixed;
@@ -1053,8 +1084,9 @@
             </div>
 
             <!-- Evolução de cargas -->
-            <div style="margin-top: 1.5rem;">
+            <div style="margin-top: 2rem;">
                 <div class="history-section-title" style="margin-bottom: 0.75rem;">Evolução de cargas</div>
+                <div class="dash-tabs" id="dash-tabs"></div>
                 <div id="load-history-list"></div>
             </div>
 
@@ -1064,11 +1096,11 @@
                     <div class="history-section-title" style="margin-bottom: 0;">Frequência Mensal</div>
                     <div class="calendar-nav">
                         <button type="button" class="btn-calendar-nav" onclick="changeMonth(-1)" aria-label="Mês anterior">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         </button>
                         <div class="calendar-month-name" id="calendar-month-name">Abril 2026</div>
                         <button type="button" class="btn-calendar-nav" onclick="changeMonth(1)" aria-label="Próximo mês">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </button>
                     </div>
                 </div>
@@ -1248,6 +1280,8 @@
         month: new Date().getMonth(),
         year: new Date().getFullYear()
     };
+    
+    let currentDashTab = null; // Aba ativa no dashboard c/ evolução
 
     // ============================================================
     //  WEEK OVERVIEW DOTS (acima dos tabs)
@@ -1468,15 +1502,17 @@
         const data = loadData();
         const history = data.history;
 
-        // Load history chart
         const loadSection = document.getElementById('load-history-list');
-        loadSection.innerHTML = '';
-        
-        // Mapeia quais exercícios já foram exibidos (para evitar duplicatas se um ex estiver em 2 dias)
-        const displayedExercises = new Set();
-        let anyDisplayed = false;
+        const dashTabsSection = document.getElementById('dash-tabs');
+        if (!loadSection || !dashTabsSection) return;
 
-        // 1. Agrupar por dia de treino (usando tabOrder para manter a ordem Seg -> Dom)
+        loadSection.innerHTML = '';
+        dashTabsSection.innerHTML = '';
+        
+        const displayedExercises = new Set();
+        const availableGroups = []; // Array de { code: string, title: string, html: string }
+
+        // 1. Processar dias de treino
         tabOrder.forEach(dayCode => {
             const dayData = workoutData[dayCode];
             const matchingEx = dayData.exercises.filter(ex => {
@@ -1485,40 +1521,62 @@
             });
 
             if (matchingEx.length > 0) {
-                anyDisplayed = true;
                 let groupHtml = `<div class="load-history-item">
                     <div class="load-group-title">${dayData.title}</div>`;
-                
                 matchingEx.forEach(ex => {
                     displayedExercises.add(ex.name);
                     groupHtml += renderSingleExerciseChart(ex.name, data.loads[ex.name]);
                 });
-                
                 groupHtml += `</div>`;
-                loadSection.innerHTML += groupHtml;
+                
+                availableGroups.push({ code: dayCode, title: dayNames[dayCode], html: groupHtml });
             }
         });
 
-        // 2. Grupo "OUTROS" para exercícios que não estão no cronograma atual mas têm dados
+        // 2. Grupo "OUTROS"
         const otherEx = Object.entries(data.loads).filter(([name, entries]) => {
             return entries.length >= 2 && !displayedExercises.has(name);
         });
 
         if (otherEx.length > 0) {
-            anyDisplayed = true;
             let groupHtml = `<div class="load-history-item">
                 <div class="load-group-title">OUTROS / ANTIGOS</div>`;
-            
             otherEx.forEach(([name, entries]) => {
                 groupHtml += renderSingleExerciseChart(name, entries);
             });
-            
             groupHtml += `</div>`;
-            loadSection.innerHTML += groupHtml;
+            availableGroups.push({ code: 'OTHER', title: 'Outros', html: groupHtml });
         }
 
-        if (!anyDisplayed) {
+        if (availableGroups.length === 0) {
             loadSection.innerHTML = `<div class="empty-history">Continue treinando para ver sua evolução aqui! (Mínimo 2 registros por exercício)</div>`;
+            dashTabsSection.innerHTML = '';
+            renderCalendar(data.history);
+            return;
+        }
+
+        // Definir aba padrão se não houver uma ou se a atual não estiver mais disponível
+        const codes = availableGroups.map(g => g.code);
+        if (!currentDashTab || !codes.includes(currentDashTab)) {
+            currentDashTab = codes[0];
+        }
+
+        // Renderizar abas
+        availableGroups.forEach(group => {
+            const btn = document.createElement('button');
+            btn.className = 'dash-tab' + (currentDashTab === group.code ? ' active' : '');
+            btn.textContent = group.title;
+            btn.onclick = () => {
+                currentDashTab = group.code;
+                renderHistoryContent();
+            };
+            dashTabsSection.appendChild(btn);
+        });
+
+        // Renderizar o conteúdo da aba selecionada
+        const selectedGroup = availableGroups.find(g => g.code === currentDashTab);
+        if (selectedGroup) {
+            loadSection.innerHTML = selectedGroup.html;
         }
 
         function renderSingleExerciseChart(name, entries) {
@@ -1542,7 +1600,6 @@
             </div>`;
         }
 
-        // Calendário mensal
         renderCalendar(data.history);
     }
 
@@ -1641,15 +1698,23 @@
         document.getElementById('dash-streak-sub').textContent =
             streak === 1 ? 'dia consecutivo treinando' : 'dias consecutivos treinando';
 
-        // Mês atual
+        // Mês atual (Contando apenas dias únicos)
         const now = new Date();
         const monthPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-        const monthCount = data.history.filter(e => e.date.startsWith(monthPrefix) && e.day !== 'DOM').length;
-        document.getElementById('dash-month').textContent = monthCount;
+        const trainedDatesThisMonth = new Set(
+            data.history
+                .filter(e => e.date.startsWith(monthPrefix) && e.day !== 'DOM')
+                .map(e => e.date)
+        );
+        document.getElementById('dash-month').textContent = trainedDatesThisMonth.size;
 
-        // Total geral
-        const totalCount = data.history.filter(e => e.day !== 'DOM').length;
-        document.getElementById('dash-total').textContent = totalCount;
+        // Total geral (Contando apenas dias únicos)
+        const totalTrainedDates = new Set(
+            data.history
+                .filter(e => e.day !== 'DOM')
+                .map(e => e.date)
+        );
+        document.getElementById('dash-total').textContent = totalTrainedDates.size;
 
         // Semana atual (Seg–Dom)
         const { today, monday } = getWeekRange();
