@@ -1106,6 +1106,10 @@
                 </div>
                 <div class="calendar-grid" id="calendar-grid"></div>
             </div>
+
+            <div style="text-align: center; margin-top: 3rem; opacity: 0.2; font-size: 0.6rem; letter-spacing: 0.1rem;">
+                IRON PROTOCOL v14
+            </div>
         </div>
     </div>
 
@@ -1787,9 +1791,10 @@
     //  SERVICE WORKER REGISTRATION
     // ============================================================
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            window.location.reload();
         });
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
     }
 
     // ============================================================
