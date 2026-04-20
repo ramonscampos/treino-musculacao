@@ -1006,6 +1006,78 @@
             .content-card { padding: 1.1rem; }
             .overview-dot { width: 22px; height: 22px; }
         }
+
+        /* ===== CALENDAR ACTIONS & TOGGLE ===== */
+        .calendar-day { cursor: pointer; }
+        .calendar-day.selected {
+            background: rgba(209, 255, 78, 0.15);
+            box-shadow: inset 0 0 0 1px var(--accent-color);
+        }
+
+        .calendar-actions-panel {
+            margin-top: 1rem;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .action-info .action-date {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: block;
+        }
+
+        .action-info .action-status {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Premium Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--card-border);
+        }
+
+        .toggle-switch:checked {
+            background: var(--accent-color);
+        }
+
+        .toggle-switch:before {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            background: #fff;
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch:checked:before {
+            left: 26px;
+            background: #000;
+        }
     </style>
 </head>
 <body>
@@ -1105,10 +1177,11 @@
                     </div>
                 </div>
                 <div class="calendar-grid" id="calendar-grid"></div>
+                <div id="calendar-actions"></div>
             </div>
 
             <div style="text-align: center; margin-top: 3rem; opacity: 0.2; font-size: 0.6rem; letter-spacing: 0.1rem;">
-                IRON PROTOCOL v14
+                IRON PROTOCOL v16
             </div>
         </div>
     </div>
@@ -1282,7 +1355,8 @@
     // Estado do calendário
     const calState = {
         month: new Date().getMonth(),
-        year: new Date().getFullYear()
+        year: new Date().getFullYear(),
+        selectedDate: null // 'YYYY-MM-DD'
     };
     
     let currentDashTab = null; // Aba ativa no dashboard c/ evolução
@@ -1670,15 +1744,71 @@
             const isSunday = dateObj.getDay() === 0;
             const isMissed = isPast && !isTrained && !isSunday;
 
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const isSelected = dateStr === calState.selectedDate;
+
             let cls = 'calendar-day';
             if (isTrained) cls += ' trained';
             if (isToday) cls += ' today';
             if (isMissed) cls += ' missed';
+            if (isSelected) cls += ' selected';
             
-            html += `<div class="${cls}"><span>${d}</span></div>`;
+            html += `<div class="${cls}" onclick="selectDay(${year}, ${month}, ${d})"><span>${d}</span></div>`;
         }
 
         grid.innerHTML = html;
+        renderCalendarActions();
+    }
+
+    function selectDay(y, m, d) {
+        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        calState.selectedDate = (calState.selectedDate === dateStr) ? null : dateStr;
+        const data = loadData();
+        renderCalendar(data.history);
+    }
+
+    function toggleDateStatus(dateStr) {
+        const data = loadData();
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const dayCode = dayMap[dateObj.getDay()];
+        
+        const idx = data.history.findIndex(e => e.date === dateStr);
+        if (idx >= 0) {
+            data.history.splice(idx, 1);
+            showToast('Treino removido do histórico');
+        } else {
+            data.history.push({ date: dateStr, day: dayCode });
+            showToast('Treino adicionado ao histórico! ✅');
+        }
+        saveData(data);
+        render(); // Re-renderiza tudo para atualizar o dashboard e streak
+    }
+
+    function renderCalendarActions() {
+        const container = document.getElementById('calendar-actions');
+        if (!container) return;
+
+        if (!calState.selectedDate) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const data = loadData();
+        const isTrained = data.history.some(e => e.date === calState.selectedDate);
+        const [y, m, d] = calState.selectedDate.split('-');
+        const dateLabel = `${d}/${m}/${y}`;
+
+        container.innerHTML = `
+            <div class="calendar-actions-panel">
+                <div class="action-info">
+                    <span class="action-date">${dateLabel}</span>
+                    <span class="action-status">${isTrained ? 'Treino concluído' : 'Sem registro de treino'}</span>
+                </div>
+                <input type="checkbox" class="toggle-switch" 
+                    ${isTrained ? 'checked' : ''} 
+                    onchange="toggleDateStatus('${calState.selectedDate}')">
+            </div>
+        `;
     }
 
     // ============================================================
@@ -1783,6 +1913,8 @@
         
         // Se o dashboard estiver aberto, atualiza também
         if (document.getElementById('dashboard-overlay').classList.contains('active')) {
+            const data = loadData();
+            renderCalendar(data.history);
             renderHistoryContent();
         }
     }
