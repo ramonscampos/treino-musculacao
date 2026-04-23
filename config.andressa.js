@@ -3,7 +3,7 @@ window.APP_CONFIG = {
 	settings: {
 		title: "Protocolo Gostosa 2.0",
 		headerName: "Treino do Mozão",
-		version: "v17",
+		version: "v19",
 	},
 	theme: {
 		"bg-color": "#0f0a0c",

@@ -1631,11 +1631,10 @@
     let _modalExName = null;
 
     function getSeriesForExercise(ex) {
-        // Se o exercício define `series`, usa. Senão, deriva de `sets` (ex: "4x10" → 4 séries)
+        // Se o exercício define `series`, usa (pirâmide/variação por série)
+        // Senão, 1 input único — o peso é o mesmo para todas as séries
         if (ex.series && ex.series.length > 0) return ex.series;
-        const match = ex.sets ? ex.sets.match(/^(\d+)x/) : null;
-        const count = match ? parseInt(match[1]) : 1;
-        return Array.from({ length: count }, () => ({ reps: null }));
+        return [{ reps: null }];
     }
 
     function openLoadModal(exName, exSets, seriesJson) {
@@ -1653,7 +1652,9 @@
 
         const inputsEl = document.getElementById('load-modal-inputs');
         inputsEl.innerHTML = series.map((s, i) => {
-            const repsLabel = s.reps ? `${s.reps} reps` : `Série ${i + 1}`;
+            const repsLabel = s.reps
+                ? `${s.reps} reps`
+                : series.length === 1 ? 'Carga' : `Série ${i + 1}`;
             const val = savedCargas[i] !== undefined ? savedCargas[i] : '';
             return `<div class="load-modal-row">
                 <div class="load-modal-row-label">${repsLabel}</div>
@@ -1784,19 +1785,23 @@
                 html += `<div class="exercise-item">
                     <div class="exercise-header">
                         <span class="exercise-name">${ex.name}</span>
-                        <span class="exercise-sets">${ex.sets}</span>
+                        <span class="exercise-sets">${
+                            ex.series && ex.series.length > 0
+                                ? `${ex.series.length}x ${ex.series.map(s => s.reps).join('/')}`
+                                : ex.sets
+                        }</span>
                     </div>
                     <div class="exercise-meta">
                         ${ex.rest ? `<span class="rest-badge">⏱ ${ex.rest}</span>` : ''}
                         ${ex.note ? `<span class="note">${ex.note}</span>` : ''}
                     </div>
                     <div class="load-row">
-                        <span class="load-label">Carga:</span>
+                        <span class="load-label"></span>
                         ${prevDisplay ? `<span class="load-prev">ant: <span>${prevDisplay}</span></span>` : ''}
                         <button type="button" class="load-chip ${cargaDisplay ? '' : 'empty'}" onclick="openLoadModal('${exNameEsc}', '${ex.sets}', '${seriesJson}')">
                             ${cargaDisplay
                                 ? `${cargaDisplay} <span class="load-chip-unit">kg</span>`
-                                : '+ registrar'}
+                                : 'registrar'}
                         </button>
                     </div>
                 </div>`;
