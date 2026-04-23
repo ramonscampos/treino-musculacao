@@ -1646,9 +1646,8 @@
 
         const data = loadData();
         const allLoads = (data.loads[exName] || []).sort((a, b) => b.date.localeCompare(a.date));
-        const todayStr_ = todayStr();
-        const todayEntry = allLoads.find(e => e.date === todayStr_);
-        const savedCargas = todayEntry ? todayEntry.cargas : [];
+        const latestEntry = allLoads[0];
+        const savedCargas = latestEntry ? latestEntry.cargas : [];
 
         const inputsEl = document.getElementById('load-modal-inputs');
         inputsEl.innerHTML = series.map((s, i) => {
@@ -1767,11 +1766,11 @@
             data.exercises.forEach((ex, i) => {
                 const series = getSeriesForExercise(ex);
                 const allLoads = (appData.loads[ex.name] || []).sort((a, b) => b.date.localeCompare(a.date));
-                const todayEntry = allLoads.find(e => e.date === todayStr());
+                const latestEntry = allLoads[0]; // Pega a última carga registrada (independente da data)
 
                 // Monta display da carga atual: "10/15/20/25" ou "20"
-                const cargaDisplay = todayEntry && todayEntry.cargas && todayEntry.cargas.some(c => c > 0)
-                    ? todayEntry.cargas.map(c => c || '—').join('/')
+                const cargaDisplay = latestEntry && latestEntry.cargas && latestEntry.cargas.some(c => c > 0)
+                    ? latestEntry.cargas.map(c => c || '—').join('/')
                     : null;
 
                 const seriesJson = encodeURIComponent(JSON.stringify(series));
