@@ -1887,6 +1887,7 @@
     //  DASHBOARD
     // ============================================================
     function refreshStats() {
+        const config = window.APP_CONFIG;
         const data = loadData();
         const streak = calcStreak(data.history);
 
