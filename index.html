@@ -1768,15 +1768,10 @@
                 const series = getSeriesForExercise(ex);
                 const allLoads = (appData.loads[ex.name] || []).sort((a, b) => b.date.localeCompare(a.date));
                 const todayEntry = allLoads.find(e => e.date === todayStr());
-                const prevEntry = allLoads.find(e => e.date !== todayStr());
 
                 // Monta display da carga atual: "10/15/20/25" ou "20"
                 const cargaDisplay = todayEntry && todayEntry.cargas && todayEntry.cargas.some(c => c > 0)
                     ? todayEntry.cargas.map(c => c || '—').join('/')
-                    : null;
-
-                const prevDisplay = prevEntry && prevEntry.cargas && prevEntry.cargas.some(c => c > 0)
-                    ? prevEntry.cargas.map(c => c || '—').join('/')
                     : null;
 
                 const seriesJson = encodeURIComponent(JSON.stringify(series));
@@ -1797,7 +1792,6 @@
                     </div>
                     <div class="load-row">
                         <span class="load-label"></span>
-                        ${prevDisplay ? `<span class="load-prev">ant: <span>${prevDisplay}</span></span>` : ''}
                         <button type="button" class="load-chip ${cargaDisplay ? '' : 'empty'}" onclick="openLoadModal('${exNameEsc}', '${ex.sets}', '${seriesJson}')">
                             ${cargaDisplay
                                 ? `${cargaDisplay} <span class="load-chip-unit">kg</span>`
