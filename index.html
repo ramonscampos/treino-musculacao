@@ -9,27 +9,38 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Iron Protocol">
     <meta name="theme-color" content="#0a0a0c">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <script>
+        // SMART URL SWITCHER
+        (() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userParam = urlParams.get('u');
+            let currentUser = localStorage.getItem('app_user') || 'ramon';
+
+            if (userParam === 'andressa') {
+                currentUser = 'andressa';
+                localStorage.setItem('app_user', 'andressa');
+            } else if (userParam === 'ramon') {
+                currentUser = 'ramon';
+                localStorage.setItem('app_user', 'ramon');
+            }
+
+            const isAndressa = currentUser === 'andressa';
+            const configFile = isAndressa ? 'config.andressa.js' : 'config.js';
+            const manifestFile = isAndressa ? 'manifest.andressa.json' : 'manifest.json';
+            const iconFile = isAndressa ? 'icon.andressa.svg' : 'icon.svg';
+
+            // Injeta o config e as metas de PWA dinamicamente
+            document.write(`<script src="${configFile}"></` + `script>`);
+            document.write(`<link rel="manifest" href="${manifestFile}">`);
+            document.write(`<link rel="apple-touch-icon" href="${iconFile}">`);
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
+    <style id="theme-styles">
         :root {
-            --bg-color: #0a0a0c;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --accent-color: #d1ff4e;
-            --accent-glow: rgba(209, 255, 78, 0.3);
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --success: #4eff88;
-            --success-bg: rgba(78, 255, 136, 0.1);
-            --danger: #ff4e4e;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            /* Variables will be injected via JS */
         }
 
         * {
@@ -99,8 +110,8 @@
             flex-direction: column;
             align-items: center;
             gap: 0.1rem;
-            background: rgba(209, 255, 78, 0.06);
-            border: 1px solid rgba(209, 255, 78, 0.2);
+            background: var(--accent-soft);
+            border: 1px solid var(--accent-mute);
             border-radius: 1rem;
             padding: 0.6rem 1rem;
             min-width: 72px;
@@ -181,7 +192,7 @@
 
         .overview-dot.rest.auto-rest {
             border-style: dashed;
-            border-color: rgba(209, 255, 78, 0.3);
+            border-color: var(--accent-mute);
         }
 
         .overview-dot.missed {
@@ -190,7 +201,7 @@
         }
 
         .overview-dot.today {
-            box-shadow: 0 0 0 2.5px var(--bg-color), 0 0 0 4.5px rgba(209, 255, 78, 0.6);
+            box-shadow: 0 0 0 2.5px var(--bg-color), 0 0 0 4.5px var(--accent-mute);
             border-color: var(--accent-color);
         }
 
@@ -215,7 +226,7 @@
         .btn-dashboard:hover, .btn-dashboard:active {
             background: rgba(255, 255, 255, 0.07);
             color: var(--accent-color);
-            border-color: rgba(209, 255, 78, 0.3);
+            border-color: var(--accent-mute);
         }
 
         /* ===== TABS ===== */
@@ -485,8 +496,8 @@
         .load-input:focus {
             outline: none;
             border-color: var(--accent-color);
-            background: rgba(209, 255, 78, 0.05);
-            box-shadow: 0 0 0 2px rgba(209, 255, 78, 0.1);
+            background: var(--accent-soft);
+            box-shadow: 0 0 0 2px var(--accent-mute);
         }
 
         .load-input::-webkit-outer-spin-button,
@@ -502,8 +513,8 @@
             margin-top: 1.25rem;
             padding: 0.85rem 1rem;
             border-radius: 1rem;
-            background: rgba(209, 255, 78, 0.05);
-            border: 1px dashed rgba(209, 255, 78, 0.4);
+            background: var(--accent-soft);
+            border: 1px dashed var(--accent-mute);
             font-size: 0.85rem;
             color: var(--accent-color);
             display: flex;
@@ -616,7 +627,7 @@
         }
 
         .btn-calendar-nav:hover {
-            background: rgba(209, 255, 78, 0.1);
+            background: var(--accent-soft);
             border-color: var(--accent-color);
             color: var(--accent-color);
         }
@@ -863,8 +874,8 @@
 
         .dash-card.full {
             grid-column: 1 / -1;
-            background: rgba(209, 255, 78, 0.06);
-            border-color: rgba(209, 255, 78, 0.2);
+            background: var(--accent-soft);
+            border-color: var(--accent-mute);
         }
 
         .dash-val {
@@ -924,11 +935,11 @@
 
         .dash-week-dot.rest {
             border-style: dashed;
-            border-color: rgba(209,255,78,0.3);
+            border-color: var(--accent-mute);
         }
 
         .dash-week-dot.today {
-            box-shadow: 0 0 0 2.5px var(--bg-color), 0 0 0 4px rgba(209, 255, 78, 0.5);
+            box-shadow: 0 0 0 2.5px var(--bg-color), 0 0 0 4px var(--accent-mute);
             border-color: var(--accent-color);
         }
 
@@ -971,7 +982,7 @@
         }
 
         .dash-tab.active {
-            background: rgba(209, 255, 78, 0.1);
+            background: var(--accent-soft);
             border-color: var(--accent-color);
             color: var(--accent-color);
         }
@@ -1010,7 +1021,7 @@
         /* ===== CALENDAR ACTIONS & TOGGLE ===== */
         .calendar-day { cursor: pointer; }
         .calendar-day.selected {
-            background: rgba(209, 255, 78, 0.15);
+            background: var(--accent-soft);
             box-shadow: inset 0 0 0 1px var(--accent-color);
         }
 
@@ -1029,6 +1040,29 @@
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-backup {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-backup:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .dash-footer-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 2rem;
         }
 
         .action-info .action-date {
@@ -1084,8 +1118,8 @@
     <div class="container">
         <header>
             <div class="header-left">
-                <div class="brand">Iron Protocol</div>
-                <h1>Meu Treino</h1>
+                <div class="brand" id="app-brand">Iron Protocol</div>
+                <h1 id="app-header-name">Meu Treino</h1>
             </div>
             <div class="streak-widget" id="streak-widget" title="Dias seguidos treinando">
                 <div class="streak-number" id="streak-number">0</div>
@@ -1180,91 +1214,51 @@
                 <div id="calendar-actions"></div>
             </div>
 
-            <div style="text-align: center; margin-top: 3rem; opacity: 0.2; font-size: 0.6rem; letter-spacing: 0.1rem;">
-                IRON PROTOCOL v16
+            <div class="dash-footer-actions">
+                <button type="button" class="btn-backup" onclick="exportData()" title="Backup">Exportar Backup</button>
+                <button type="button" class="btn-backup" onclick="importData()" title="Restaurar">Importar Backup</button>
+            </div>
+            <div class="footer-note" style="margin-top: 1rem; opacity: 0.5; font-size: 0.7rem; text-align: center;">
+                Iron Protocol 
             </div>
         </div>
     </div>
 
     <div class="toast" id="toast"></div>
 
-    <script id="workout-data" type="application/json">
-    {
-        "SEG": {
-            "title": "SEGUNDA — OMBRO",
-            "exercises": [
-                { "name": "Desenvolvimento com halteres", "sets": "4x6–8", "rest": "3min" },
-                { "name": "Elevação lateral com halteres", "sets": "4x10–12", "rest": "90s" },
-                { "name": "Elevação lateral na polia baixa", "sets": "3x12–15", "rest": "90s" },
-                { "name": "Remada alta na polia", "sets": "4x8–10", "rest": "2min" },
-                { "name": "Face pull", "sets": "3x12–15", "rest": "90s" }
-            ]
-        },
-        "TER": {
-            "title": "TERÇA — PUSH (Peito + Tríceps)",
-            "exercises": [
-                { "name": "Supino reto com barra", "sets": "4x6–8", "rest": "3min" },
-                { "name": "Supino inclinado com halteres", "sets": "4x8–10", "rest": "2min" },
-                { "name": "Crossover no cabo", "sets": "3x12–15", "rest": "90s" },
-                { "name": "Mergulho no paralelo", "sets": "3x10–12", "rest": "90s" },
-                { "name": "Tríceps testa com barra", "sets": "4x8–10", "rest": "2min" },
-                { "name": "Tríceps polia corda", "sets": "3x12–15", "rest": "90s" }
-            ]
-        },
-        "QUA": {
-            "title": "QUARTA — PULL (Costas + Bíceps)",
-            "exercises": [
-                { "name": "Puxada frontal aberta", "sets": "4x8–10", "rest": "2min" },
-                { "name": "Remada máquina com apoio no peito (horizontal)", "sets": "4x8–10", "rest": "2min" },
-                { "name": "Remada unilateral com haltere", "sets": "3x10–12", "rest": "90s" },
-                { "name": "Crucifixo inverso (posterior de ombro)", "sets": "3x12–15", "rest": "90s" },
-                { "name": "Rosca direta com barra", "sets": "4x8–10", "note": "superset ↓" },
-                { "name": "Rosca martelo", "sets": "3x10–12", "rest": "2min após o superset" }
-            ]
-        },
-        "QUI": {
-            "title": "QUINTA — LEGS (Posterior + Adutor)",
-            "exercises": [
-                { "name": "Hack squat", "sets": "4x6–8", "rest": "3min" },
-                { "name": "Cadeira flexora", "sets": "4x10–12", "rest": "2min" },
-                { "name": "Stiff com halteres", "sets": "4x8–10", "rest": "2min" },
-                { "name": "Adução na máquina", "sets": "3x12–15", "rest": "90s" },
-                { "name": "Leg press pés abertos", "sets": "3x10–12", "rest": "2min" },
-                { "name": "Panturrilha em pé", "sets": "4x12–15", "rest": "60s" }
-            ]
-        },
-        "SEX": {
-            "title": "SEXTA — UPPER (Peito + Costas)",
-            "exercises": [
-                { "name": "Supino inclinado com barra", "sets": "4x5–6", "rest": "3min" },
-                { "name": "Remada máquina com apoio no peito (inclinada)", "sets": "4x10–12", "rest": "2min" },
-                { "name": "Crucifixo inclinado", "sets": "3x12–15", "rest": "90s" },
-                { "name": "Supino declinado com halteres", "sets": "3x8–10", "rest": "2min" },
-                { "name": "Puxada neutra", "sets": "3x8–10", "rest": "2min" },
-                { "name": "Remada na polia baixa (triângulo neutro, tronco ereto)", "sets": "3x10–12", "rest": "90s" }
-            ],
-            "extra": "🥊 Boxe à noite"
-        },
-        "SAB": {
-            "title": "SÁBADO — LEGS (Quad + Vasto Medial)",
-            "exercises": [
-                { "name": "Agachamento livre", "sets": "4x8–10", "rest": "2min" },
-                { "name": "Leg press pé baixo e fechado", "sets": "4x10–12", "rest": "2min" },
-                { "name": "Búlgaro", "sets": "3x10–12 cada perna", "rest": "2min" },
-                { "name": "Cadeira extensora", "sets": "4x10–12", "rest": "90s", "note": "última série: drop set" },
-                { "name": "Panturrilha sentado", "sets": "4x12–15", "rest": "60s" }
-            ]
-        },
-        "DOM": {
-            "title": "DOMINGO — DESCANSO",
-            "exercises": [],
-            "rest": true,
-            "extra": "🎾 Descanso da musculação • Tênis de manhã"
-        }
-    }
-    </script>
-
     <script>
+    // ============================================================
+    //  CONFIGURATION INITIALIZATION
+    // ============================================================
+    (() => {
+        const config = window.APP_CONFIG;
+        if (!config) return;
+
+        // Apply Theme
+        const root = document.documentElement;
+        Object.entries(config.theme).forEach(([key, value]) => {
+            root.style.setProperty(`--${key}`, value);
+        });
+        
+        // Add default transitions/safe areas if not in theme
+        if (!config.theme['transition']) root.style.setProperty('--transition', 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)');
+        if (!config.theme['safe-top']) root.style.setProperty('--safe-top', 'env(safe-area-inset-top, 0px)');
+        if (!config.theme['safe-bottom']) root.style.setProperty('--safe-bottom', 'env(safe-area-inset-bottom, 0px)');
+        
+        // Add defaults for soft/mute if missing
+        if (!config.theme['accent-soft']) root.style.setProperty('--accent-soft', 'rgba(209, 255, 78, 0.06)');
+        if (!config.theme['accent-mute']) root.style.setProperty('--accent-mute', 'rgba(209, 255, 78, 0.2)');
+
+        // Apply Settings
+        document.title = config.settings.title;
+        document.querySelector('meta[name="apple-mobile-web-app-title"]').setAttribute('content', config.settings.title);
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', config.theme['bg-color']);
+        
+        document.getElementById('app-brand').textContent = config.settings.title;
+        document.getElementById('app-header-name').textContent = config.settings.headerName;
+        document.getElementById('app-version').textContent = `${config.settings.title.toUpperCase()} ${config.settings.version}`;
+    })();
+
     // ============================================================
     //  DATA LAYER — LocalStorage
     // ============================================================
@@ -1303,50 +1297,59 @@
     function calcStreak(history) {
         if (!history.length) return 0;
 
-        // Ordem dos dias de treino na semana (DOM é descanso, não conta)
-        const TRAIN_ORDER = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+        const config = window.APP_CONFIG;
+        const plannedPerWeek = Object.values(config.workoutData).filter(d => d.exercises && d.exercises.length > 0).length;
+        
+        // Agrupa treinos por semana (Começando no Domingo)
+        const getWeekId = (dateStr) => {
+            const d = new Date(`${dateStr}T00:00:00`);
+            const day = d.getDay(); // 0 = Dom
+            const sun = new Date(d);
+            sun.setDate(d.getDate() - day);
+            return sun.toISOString().split('T')[0];
+        };
 
-        // Dia atual no mapa de treino (JS: 0=Dom,1=Seg...6=Sáb)
-        const todayDayOfWeek = new Date().getDay(); // 0=Dom
-        const todayCode = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'][todayDayOfWeek];
+        const weeks = {};
+        history.forEach(h => {
+            const wid = getWeekId(h.date);
+            if (!weeks[wid]) weeks[wid] = new Set();
+            weeks[wid].add(h.date); // Usamos Set para evitar contar múltiplos treinos no mesmo dia
+        });
 
-        // Códigos concluídos esta semana
-        const weekCodes = getWeekDayCodes ? getWeekDayCodes() : new Set(history.map(e => e.day));
+        const sortedWeekIds = Object.keys(weeks).sort().reverse();
+        const { sunday: currentWeekSunday } = getWeekRange();
+        const currentWeekId = currentWeekSunday.toISOString().split('T')[0];
 
-        // Acha o índice do dia mais avançado concluído (ou o dia de hoje, o que for menor)
-        const todayTrainIdx = TRAIN_ORDER.indexOf(todayCode); // -1 se for DOM
-        let lastIdx = -1;
-        for (let i = TRAIN_ORDER.length - 1; i >= 0; i--) {
-            if (weekCodes.has(TRAIN_ORDER[i])) {
-                // Só conta até o dia atual (não conta dias futuros não completados)
-                lastIdx = i;
-                break;
-            }
-        }
+        let totalStreak = 0;
+        let onCurrentChain = true;
 
-        if (lastIdx === -1) return 0;
-
-        // Conta dias consecutivos de trás pra frente a partir do lastIdx
-        let streak = 0;
-        for (let i = lastIdx; i >= 0; i--) {
-            if (weekCodes.has(TRAIN_ORDER[i])) {
-                streak++;
+        for (const wid of sortedWeekIds) {
+            const sessionsCount = weeks[wid].size;
+            
+            if (wid === currentWeekId) {
+                // Semana atual: apenas somamos o que já foi feito
+                totalStreak += sessionsCount;
             } else {
-                break; // quebrou a sequência
+                // Semanas passadas: se bateu a meta, soma. Se não, quebra a sequência.
+                if (sessionsCount >= plannedPerWeek) {
+                    totalStreak += plannedPerWeek; 
+                } else {
+                    break; 
+                }
             }
         }
 
-        return streak;
+        return totalStreak;
     }
 
     // ============================================================
     //  UI STATE
     // ============================================================
-    const workoutData = JSON.parse(document.getElementById('workout-data').textContent);
+    const workoutData = window.APP_CONFIG.workoutData;
     // Ordem: Seg, Ter, Qua, Qui, Sex, Sáb, Dom
     const dayMap = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
     const dayNames = { DOM: 'Dom', SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sáb' };
-    const tabOrder = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
+    const tabOrder = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
     const IDX_TO_DAY = tabOrder;
     
     let currentDay = todayStrCode();
@@ -1364,26 +1367,28 @@
     // ============================================================
     //  WEEK OVERVIEW DOTS (acima dos tabs)
     // ============================================================
-    // Mapeia índice do loop (0=Seg...6=Dom) para código do dia
-
     function getWeekRange() {
         const today = new Date();
-        today.setHours(0,0,0,0);
-        const monday = new Date(today);
-        const wd = monday.getDay();
-        monday.setDate(monday.getDate() + (wd === 0 ? -6 : 1 - wd));
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        return { today, monday, sunday };
+        today.setHours(0, 0, 0, 0);
+        const day = today.getDay(); // 0 = Dom
+        
+        const sunday = new Date(today);
+        sunday.setDate(today.getDate() - day);
+        
+        const saturday = new Date(sunday);
+        saturday.setDate(sunday.getDate() + 6);
+        saturday.setHours(23, 59, 59, 999);
+        
+        return { today, sunday, saturday };
     }
 
     function getWeekDayCodes() {
-        const { monday, sunday } = getWeekRange();
         const data = loadData();
+        const { sunday, saturday } = getWeekRange();
         const codes = new Set();
         data.history.forEach(e => {
-            const d = new Date(e.date + 'T00:00:00');
-            if (d >= monday && d <= sunday) codes.add(e.day);
+            const d = new Date(`${e.date}T00:00:00`);
+            if (d >= sunday && d <= saturday) codes.add(e.day);
         });
         return codes;
     }
@@ -1392,33 +1397,38 @@
         const card = document.getElementById('week-overview');
         if (!card) return;
 
-        const { today, monday } = getWeekRange();
-        const weekDayCodes = getWeekDayCodes();
-        const letters = ['S','T','Q','Q','S','S','D'];
+        const config = window.APP_CONFIG;
+        const { today } = getWeekRange();
+        const weekDayCodes = getWeekDayCodes(); // Sessões únicas feitas esta semana
+        
+        // Quantos treinos estão planejados na semana?
+        const plannedWorkouts = Object.values(config.workoutData).filter(d => d.exercises && d.exercises.length > 0).length;
+        const sessionsDone = weekDayCodes.size;
 
         let html = '';
+        // Mostramos 7 bolinhas, mas agora elas são "Progresso"
         for (let i = 0; i < 7; i++) {
-            const d = new Date(monday);
-            d.setDate(monday.getDate() + i);
-            const isFuture = d > today;
-            const isToday = d.getTime() === today.getTime();
-            const isSunday = d.getDay() === 0;
-            const dayCode = IDX_TO_DAY[i];
-            const trained = weekDayCodes.has(dayCode);
-
             let dotClass = 'overview-dot';
-            if (isSunday) {
-                dotClass += ' rest';
-                if (!isFuture) dotClass += ' auto-rest';
-            } else if (trained) {
+            let label = i + 1;
+
+            if (i < sessionsDone) {
                 dotClass += ' completed';
-            } else if (!isFuture && !isToday) {
-                dotClass += ' missed'; // dia passado sem treino
+            } else if (i < plannedWorkouts) {
+                // É um treino planejado mas ainda não feito
+                const dayOfweek = new Date().getDay(); // 0=Dom, 1=Seg...
+                const adjustedDay = dayOfweek + 1; // Domingo vira 1, Segunda vira 2...
+                
+                if (i < (adjustedDay - 1)) {
+                    // Se já passamos do dia que deveríamos ter feito esse número de treinos
+                    dotClass += ' missed';
+                }
+            } else {
+                // É dia de descanso planejado
+                dotClass += ' rest';
             }
-            if (isToday) dotClass += ' today';
 
             html += `<div class="overview-dot-wrap">
-                <div class="overview-label">${letters[i]}</div>
+                <div class="overview-label">${label}º</div>
                 <div class="${dotClass}"></div>
             </div>`;
         }
@@ -1453,12 +1463,12 @@
 
     // Retorna a data (YYYY-MM-DD) do dia da semana correspondente na semana ATUAL
     function getTargetDate(dayCode) {
-        const { monday } = getWeekRange();
+        const { sunday } = getWeekRange();
         const dayIdx = IDX_TO_DAY.indexOf(dayCode);
         if (dayIdx === -1) return todayStr();
 
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + dayIdx);
+        const d = new Date(sunday);
+        d.setDate(sunday.getDate() + dayIdx);
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
@@ -1769,7 +1779,7 @@
 
     function toggleDateStatus(dateStr) {
         const data = loadData();
-        const dateObj = new Date(dateStr + 'T00:00:00');
+        const dateObj = new Date(`${dateStr}T00:00:00`);
         const dayCode = dayMap[dateObj.getDay()];
         
         const idx = data.history.findIndex(e => e.date === dateStr);
@@ -1815,59 +1825,90 @@
     //  STREAK DISPLAY
     // ============================================================
     function renderStreak() {
-        const { history } = loadData();
-        const streak = calcStreak(history);
-        document.getElementById('streak-number').textContent = streak;
+        const data = loadData();
+        const streak = calcStreak(data.history);
+        const el = document.getElementById('streak-number');
+        if (el) el.textContent = streak;
+    }
+
+    // ============================================================
+    //  BACKUP & MIGRATION
+    // ============================================================
+    function exportData() {
+        const data = loadData();
+        const str = JSON.stringify(data);
+        navigator.clipboard.writeText(str).then(() => {
+            showToast('✅ Backup copiado! Guarde esse código.');
+        }).catch(() => {
+            alert('Erro ao copiar. Tente novamente.');
+        });
+    }
+
+    function importData() {
+        const str = prompt('Cole aqui o código de backup:');
+        if (!str) return;
+        try {
+            const data = JSON.parse(str);
+            if (data.history && data.loads) {
+                saveData(data);
+                showToast('🚀 Dados restaurados com sucesso!');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                throw new Error('Formato inválido');
+            }
+        } catch (e) {
+            alert('Erro: Código de backup inválido.');
+        }
     }
 
     // ============================================================
     //  DASHBOARD
     // ============================================================
-    function openDashboard() {
+    function refreshStats() {
         const data = loadData();
         const streak = calcStreak(data.history);
 
-        // Streak
-        document.getElementById('dash-streak').textContent = streak;
-        document.getElementById('dash-streak-sub').textContent =
-            streak === 1 ? 'dia consecutivo treinando' : 'dias consecutivos treinando';
+        // Atualiza indicadores do Dashboard
+        if (document.getElementById('dash-streak')) {
+            document.getElementById('dash-streak').textContent = streak;
+            document.getElementById('dash-streak-sub').textContent =
+                streak === 1 ? 'dia consecutivo treinando' : 'dias consecutivos treinando';
+        }
 
-        // Mês atual (Contando apenas dias únicos)
+        // Mês atual (Contando todos os dias únicos)
         const now = new Date();
         const monthPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
         const trainedDatesThisMonth = new Set(
             data.history
-                .filter(e => e.date.startsWith(monthPrefix) && e.day !== 'DOM')
+                .filter(e => e.date.startsWith(monthPrefix))
                 .map(e => e.date)
         );
-        document.getElementById('dash-month').textContent = trainedDatesThisMonth.size;
+        if (document.getElementById('dash-month')) {
+            document.getElementById('dash-month').textContent = trainedDatesThisMonth.size;
+        }
 
-        // Total geral (Contando apenas dias únicos)
-        const totalTrainedDates = new Set(
-            data.history
-                .filter(e => e.day !== 'DOM')
-                .map(e => e.date)
-        );
-        document.getElementById('dash-total').textContent = totalTrainedDates.size;
+        // Total geral
+        const totalTrainedDates = new Set(data.history.map(e => e.date));
+        if (document.getElementById('dash-total')) {
+            document.getElementById('dash-total').textContent = totalTrainedDates.size;
+        }
 
-        // Semana atual (Seg–Dom)
-        const { today, monday } = getWeekRange();
+        // Semana atual no Dashboard
+        const { today, sunday } = getWeekRange();
         const weekDayCodes = getWeekDayCodes();
-        const letters = ['S','T','Q','Q','S','S','D'];
+        const letters = ['D','S','T','Q','Q','S','S'];
 
         let weekHtml = '';
         for (let i = 0; i < 7; i++) {
-            const d = new Date(monday);
-            d.setDate(monday.getDate() + i);
+            const d = new Date(sunday);
+            d.setDate(sunday.getDate() + i);
             const isFuture = d > today;
             const isToday = d.getTime() === today.getTime();
-            const isSunday = d.getDay() === 0;
             const dayCode = IDX_TO_DAY[i];
             const trained = weekDayCodes.has(dayCode);
 
             let dc = 'dash-week-dot';
-            if (isSunday) dc += ' rest';
-            else if (trained) dc += ' trained';
+            if (trained) dc += ' trained';
             else if (!isFuture && !isToday) dc += ' missed';
             
             if (isToday) dc += ' today';
@@ -1877,11 +1918,18 @@
                 <div class="${dc}"></div>
             </div>`;
         }
-        document.getElementById('dash-week-row').innerHTML = weekHtml;
+        const dashWeekRow = document.getElementById('dash-week-row');
+        if (dashWeekRow) dashWeekRow.innerHTML = weekHtml;
 
+        renderWeekOverview();
+        renderTabs();
+        renderStreak();
+    }
+
+    function openDashboard() {
+        refreshStats();
         document.getElementById('dashboard-overlay').classList.add('active');
         document.body.style.overflow = 'hidden';
-
         renderHistoryContent();
     }
 
@@ -1906,12 +1954,10 @@
     //  MAIN RENDER
     // ============================================================
     function render() {
-        renderWeekOverview();
-        renderTabs();
-        renderStreak();
+        refreshStats();
         renderWorkout(currentDay);
         
-        // Se o dashboard estiver aberto, atualiza também
+        // Se o dashboard estiver aberto, atualiza também o calendário interno
         if (document.getElementById('dashboard-overlay').classList.contains('active')) {
             const data = loadData();
             renderCalendar(data.history);

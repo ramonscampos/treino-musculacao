@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fundo -->
+  <rect width="512" height="512" fill="#0a0a0c" rx="100"/>
+  
+  <!-- Coração Lilás (Caminho Geométrico Limpo) -->
+  <path d="M256,120 C256,120 200,60 140,60 C80,60 40,110 40,170 C40,260 256,450 256,450 C256,450 472,260 472,170 C472,110 432,60 372,60 C312,60 256,120 256,120 Z" fill="#a78bfa"/>
+
+  <!-- Silhueta do Halter (Centralizado em Y=255) -->
+  <g fill="#0a0a0c">
+    <!-- Barra -->
+    <rect x="186" y="240" width="140" height="30" rx="4"/>
+    <!-- Anilhas Grandes -->
+    <rect x="166" y="215" width="20" height="80" rx="4"/>
+    <rect x="326" y="215" width="20" height="80" rx="4"/>
+    <!-- Anilhas Pequenas -->
+    <rect x="141" y="235" width="20" height="40" rx="4"/>
+    <rect x="351" y="235" width="20" height="40" rx="4"/>
+  </g>
+</svg>

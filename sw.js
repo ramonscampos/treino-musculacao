@@ -1,9 +1,13 @@
-const CACHE_NAME = "iron-protocol-v16";
+const CACHE_NAME = "iron-protocol-v17";
 const ASSETS = [
 	"./",
 	"./index.html",
+	"./config.js",
+	"./config.andressa.js",
 	"./manifest.json",
+	"./manifest.andressa.json",
 	"./icon.svg",
+	"./icon.andressa.svg",
 	"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap",
 ];
 
