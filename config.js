@@ -2,7 +2,7 @@ window.APP_CONFIG = {
     settings: {
         title: "Iron Protocol",
         headerName: "Meu Treino",
-        version: "v19"
+        version: "v20"
     },
     theme: {
         "bg-color": "#0a0a0c",
