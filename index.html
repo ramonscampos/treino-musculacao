@@ -1425,37 +1425,32 @@
         if (!card) return;
 
         const config = window.APP_CONFIG;
-        const { today } = getWeekRange();
-        const weekDayCodes = getWeekDayCodes(); // Sessões únicas feitas esta semana
-        
-        // Quantos treinos estão planejados na semana?
-        const plannedWorkouts = Object.values(config.workoutData).filter(d => d.exercises && d.exercises.length > 0).length;
-        const sessionsDone = weekDayCodes.size;
+        const { today, sunday, saturday } = getWeekRange();
+        const weekDayCodes = getWeekDayCodes();
+        const letters = ['D','S','T','Q','Q','S','S'];
 
         let html = '';
-        // Mostramos 7 bolinhas, mas agora elas são "Progresso"
         for (let i = 0; i < 7; i++) {
-            let dotClass = 'overview-dot';
-            let label = i + 1;
+            const d = new Date(sunday);
+            d.setDate(sunday.getDate() + i);
+            const isFuture = d > today;
+            const isToday = d.getTime() === today.getTime();
+            const dayCode = IDX_TO_DAY[i];
+            const trained = weekDayCodes.has(dayCode);
+            const isPlannedRest = !config.workoutData[dayCode] || !config.workoutData[dayCode].exercises || config.workoutData[dayCode].exercises.length === 0;
 
-            if (i < sessionsDone) {
+            let dotClass = 'overview-dot';
+            if (trained) {
                 dotClass += ' completed';
-            } else if (i < plannedWorkouts) {
-                // É um treino planejado mas ainda não feito
-                const dayOfweek = new Date().getDay(); // 0=Dom, 1=Seg...
-                const adjustedDay = dayOfweek + 1; // Domingo vira 1, Segunda vira 2...
-                
-                if (i < (adjustedDay - 1)) {
-                    // Se já passamos do dia que deveríamos ter feito esse número de treinos
-                    dotClass += ' missed';
-                }
-            } else {
-                // É dia de descanso planejado
+            } else if (isPlannedRest) {
                 dotClass += ' rest';
+            } else if (!isFuture && !isToday) {
+                dotClass += ' missed';
             }
+            if (isToday) dotClass += ' today';
 
             html += `<div class="overview-dot-wrap">
-                <div class="overview-label">${label}º</div>
+                <div class="overview-label">${letters[i]}</div>
                 <div class="${dotClass}"></div>
             </div>`;
         }
