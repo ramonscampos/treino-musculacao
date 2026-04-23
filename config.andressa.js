@@ -3,7 +3,7 @@ window.APP_CONFIG = {
     settings: {
         title: "Andressa Protocol",
         headerName: "Treino da Andressa",
-        version: "v1.0"
+        version: "v17"
     },
     theme: {
         "bg-color": "#0f0a0c",
