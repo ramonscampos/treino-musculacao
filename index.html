@@ -442,11 +442,12 @@
             font-size: 0.75rem;
         }
 
-        /* ===== LOAD INPUT ===== */
+        /* ===== LOAD CHIP (toque para editar) ===== */
         .load-row {
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            margin-top: 0.4rem;
         }
 
         .load-label {
@@ -456,57 +457,174 @@
             white-space: nowrap;
         }
 
-        .load-prev {
-            font-size: 0.72rem;
+        .load-chip {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.75rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--card-border);
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .load-chip:active {
+            transform: scale(0.96);
+        }
+
+        .load-chip.empty {
             color: var(--text-muted);
-            padding: 0.25rem 0.6rem;
+            font-weight: 400;
+            font-size: 0.8rem;
+        }
+
+        .load-chip-unit {
+            font-size: 0.65rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 2px;
+        }
+
+        .load-prev {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding: 0.2rem 0.5rem;
             background: rgba(255,255,255,0.04);
             border-radius: 0.4rem;
             flex-shrink: 0;
         }
 
-        .load-prev span {
-            color: var(--accent-color);
-            font-weight: 600;
+        .load-prev span { color: var(--accent-color); font-weight: 600; }
+
+        /* ===== LOAD MODAL ===== */
+        .load-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
         }
 
-        .load-input-wrap {
+        .load-modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .load-modal {
+            background: #18181b;
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem 1.5rem 0 0;
+            padding: 1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+            width: 100%;
+            max-width: 600px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .load-modal-overlay.active .load-modal {
+            transform: translateY(0);
+        }
+
+        .load-modal-handle {
+            width: 40px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.15);
+            margin: 0 auto 1.25rem;
+        }
+
+        .load-modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .load-modal-sets {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .load-modal-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .load-modal-row {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-            margin-left: auto;
+            gap: 0.75rem;
         }
 
-        /* font-size >= 16px evita zoom no iOS ao focar input */
-        .load-input {
-            width: 80px;
-            padding: 0.3rem 0.5rem;
+        .load-modal-row-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            min-width: 80px;
+        }
+
+        .load-modal-input {
+            flex: 1;
+            padding: 0.6rem 0.75rem;
             background: rgba(255,255,255,0.06);
             border: 1px solid var(--card-border);
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             color: var(--text-primary);
             font-size: 16px;
             font-family: 'Outfit', sans-serif;
-            font-weight: 600;
+            font-weight: 700;
             text-align: center;
             transition: var(--transition);
             -moz-appearance: textfield;
         }
 
-        .load-input:focus {
+        .load-modal-input::-webkit-outer-spin-button,
+        .load-modal-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+        .load-modal-input:focus {
             outline: none;
             border-color: var(--accent-color);
             background: var(--accent-soft);
-            box-shadow: 0 0 0 2px var(--accent-mute);
         }
 
-        .load-input::-webkit-outer-spin-button,
-        .load-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-        .load-unit {
-            font-size: 0.72rem;
+        .load-modal-unit {
+            font-size: 0.75rem;
             color: var(--text-muted);
+            min-width: 24px;
         }
+
+        .load-modal-save {
+            width: 100%;
+            padding: 0.85rem;
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            border-radius: 1rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .load-modal-save:active { transform: scale(0.98); }
 
         /* ===== EXTRA INFO ===== */
         .extra-info {
@@ -1171,6 +1289,17 @@
 
     </div>
 
+    <!-- LOAD MODAL -->
+    <div class="load-modal-overlay" id="load-modal-overlay" onclick="handleModalOverlayClick(event)">
+        <div class="load-modal" id="load-modal">
+            <div class="load-modal-handle"></div>
+            <div class="load-modal-title" id="load-modal-title"></div>
+            <div class="load-modal-sets" id="load-modal-sets"></div>
+            <div class="load-modal-inputs" id="load-modal-inputs"></div>
+            <button type="button" class="load-modal-save" onclick="saveLoadModal()">Salvar Cargas</button>
+        </div>
+    </div>
+
     <!-- DASHBOARD OVERLAY -->
     <div class="dashboard-overlay" id="dashboard-overlay">
         <div class="dash-inner">
@@ -1496,21 +1625,100 @@
 
 
 
-    function saveLoad(exerciseName, value) {
-        if (!value.trim()) return;
+    // ============================================================
+    //  LOAD MODAL — Salvar cargas (array, suporta pirâmide)
+    // ============================================================
+    let _modalExName = null;
+
+    function getSeriesForExercise(ex) {
+        // Se o exercício define `series`, usa. Senão, deriva de `sets` (ex: "4x10" → 4 séries)
+        if (ex.series && ex.series.length > 0) return ex.series;
+        const match = ex.sets ? ex.sets.match(/^(\d+)x/) : null;
+        const count = match ? parseInt(match[1]) : 1;
+        return Array.from({ length: count }, () => ({ reps: null }));
+    }
+
+    function openLoadModal(exName, exSets, seriesJson) {
+        const series = JSON.parse(decodeURIComponent(seriesJson));
+        _modalExName = exName;
+
+        document.getElementById('load-modal-title').textContent = exName;
+        document.getElementById('load-modal-sets').textContent = exSets;
+
         const data = loadData();
-        if (!data.loads[exerciseName]) data.loads[exerciseName] = [];
+        const allLoads = (data.loads[exName] || []).sort((a, b) => b.date.localeCompare(a.date));
+        const todayStr_ = todayStr();
+        const todayEntry = allLoads.find(e => e.date === todayStr_);
+        const savedCargas = todayEntry ? todayEntry.cargas : [];
+
+        const inputsEl = document.getElementById('load-modal-inputs');
+        inputsEl.innerHTML = series.map((s, i) => {
+            const repsLabel = s.reps ? `${s.reps} reps` : `Série ${i + 1}`;
+            const val = savedCargas[i] !== undefined ? savedCargas[i] : '';
+            return `<div class="load-modal-row">
+                <div class="load-modal-row-label">${repsLabel}</div>
+                <input
+                    class="load-modal-input"
+                    id="load-modal-input-${i}"
+                    type="number"
+                    inputmode="decimal"
+                    placeholder="0"
+                    value="${val}"
+                >
+                <span class="load-modal-unit">kg</span>
+            </div>`;
+        }).join('');
+
+        document.getElementById('load-modal-overlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Foca no primeiro input vazio
+        setTimeout(() => {
+            const first = inputsEl.querySelector('.load-modal-input:not([value])') ||
+                          inputsEl.querySelector('.load-modal-input[value=""]') ||
+                          inputsEl.querySelector('.load-modal-input');
+            if (first) first.focus();
+        }, 350);
+    }
+
+    function handleModalOverlayClick(event) {
+        if (event.target === document.getElementById('load-modal-overlay')) {
+            closeLoadModal();
+        }
+    }
+
+    function closeLoadModal() {
+        document.getElementById('load-modal-overlay').classList.remove('active');
+        document.body.style.overflow = '';
+        _modalExName = null;
+    }
+
+    function saveLoadModal() {
+        if (!_modalExName) return;
+        const inputs = document.querySelectorAll('.load-modal-input');
+        const cargas = Array.from(inputs).map(inp => {
+            const v = parseFloat(inp.value);
+            return isNaN(v) ? 0 : v;
+        });
+
+        const data = loadData();
+        if (!data.loads[_modalExName]) data.loads[_modalExName] = [];
 
         const today = todayStr();
-        const existingIdx = data.loads[exerciseName].findIndex(e => e.date === today);
-        const entry = { date: today, value: value.trim() };
+        const existingIdx = data.loads[_modalExName].findIndex(e => e.date === today);
+        const entry = { date: today, cargas };
         if (existingIdx >= 0) {
-            data.loads[exerciseName][existingIdx] = entry;
+            data.loads[_modalExName][existingIdx] = entry;
         } else {
-            data.loads[exerciseName].push(entry);
+            data.loads[_modalExName].push(entry);
         }
         saveData(data);
+        showToast('✅ Cargas salvas!');
+        closeLoadModal();
+        renderWorkout(currentDay);
     }
+
+    function saveLoad() { /* deprecated — mantido para compatibilidade */ }
 
     function toggleCompleted(day) {
         const data = loadData();
@@ -1556,12 +1764,22 @@
             html += `<div class="empty-state">Sem musculação hoje. Aproveite o descanso! 🛌</div>`;
         } else {
             data.exercises.forEach((ex, i) => {
-                const allLoads = appData.loads[ex.name] || [];
-                // Ordena decrescente pela data para garantir que o primeiro é o mais atual
-                const sorted = [...allLoads].sort((a,b) => b.date.localeCompare(a.date));
-                const currentVal = sorted.length > 0 ? sorted[0].value : '';
-                const prevVal = sorted.length > 1 ? sorted[1].value : null;
-                const exId = `ex-${day}-${i}`;
+                const series = getSeriesForExercise(ex);
+                const allLoads = (appData.loads[ex.name] || []).sort((a, b) => b.date.localeCompare(a.date));
+                const todayEntry = allLoads.find(e => e.date === todayStr());
+                const prevEntry = allLoads.find(e => e.date !== todayStr());
+
+                // Monta display da carga atual: "10/15/20/25" ou "20"
+                const cargaDisplay = todayEntry && todayEntry.cargas && todayEntry.cargas.some(c => c > 0)
+                    ? todayEntry.cargas.map(c => c || '—').join('/')
+                    : null;
+
+                const prevDisplay = prevEntry && prevEntry.cargas && prevEntry.cargas.some(c => c > 0)
+                    ? prevEntry.cargas.map(c => c || '—').join('/')
+                    : null;
+
+                const seriesJson = encodeURIComponent(JSON.stringify(series));
+                const exNameEsc = ex.name.replace(/"/g, '&quot;').replace(/'/g, '\'');
 
                 html += `<div class="exercise-item">
                     <div class="exercise-header">
@@ -1574,20 +1792,12 @@
                     </div>
                     <div class="load-row">
                         <span class="load-label">Carga:</span>
-                        ${prevVal ? `<span class="load-prev">anterior: <span>${prevVal}</span></span>` : ''}
-                        <div class="load-input-wrap">
-                            <input
-                                class="load-input"
-                                id="${exId}"
-                                type="text"
-                                inputmode="decimal"
-                                placeholder="ex: 20"
-                                value="${currentVal}"
-                                onchange="saveLoad('${ex.name.replace(/'/g, "\\'")}', this.value)"
-                                onblur="saveLoad('${ex.name.replace(/'/g, "\\'")}', this.value)"
-                            >
-                            <span class="load-unit">kg</span>
-                        </div>
+                        ${prevDisplay ? `<span class="load-prev">ant: <span>${prevDisplay}</span></span>` : ''}
+                        <button type="button" class="load-chip ${cargaDisplay ? '' : 'empty'}" onclick="openLoadModal('${exNameEsc}', '${ex.sets}', '${seriesJson}')">
+                            ${cargaDisplay
+                                ? `${cargaDisplay} <span class="load-chip-unit">kg</span>`
+                                : '+ registrar'}
+                        </button>
                     </div>
                 </div>`;
             });
@@ -1690,17 +1900,34 @@
         }
 
         function renderSingleExerciseChart(name, entries) {
-            // Garante ordenação cronológica antes de exibir
             const sortedEntries = [...entries].sort((a, b) => a.date.localeCompare(b.date));
             const last5 = sortedEntries.slice(-5);
-            const numVals = last5.map(e => parseFloat(e.value) || 0);
+
+            // Calcula o valor de referência de cada entrada: média das cargas (arredondada)
+            const getRef = (e) => {
+                if (e.cargas && e.cargas.length > 0) {
+                    const avg = e.cargas.reduce((s, v) => s + (parseFloat(v) || 0), 0) / e.cargas.length;
+                    return Math.round(avg);
+                }
+                return parseFloat(e.value) || 0;
+            };
+
+            // Label de exibição: "10/15/20" ou valor único
+            const getLabel = (e) => {
+                if (e.cargas && e.cargas.length > 1) return e.cargas.join('/');
+                if (e.cargas && e.cargas.length === 1) return e.cargas[0];
+                return e.value || '—';
+            };
+
+            const numVals = last5.map(getRef);
             const maxVal = Math.max(...numVals, 1);
-            
+
             const barsHtml = last5.map(e => {
-                const h = Math.max(4, Math.round((parseFloat(e.value) / maxVal) * 38));
+                const ref = getRef(e);
+                const h = Math.max(4, Math.round((ref / maxVal) * 38));
                 return `<div class="load-bar-wrap">
                     <div class="load-bar" style="height:${h}px"></div>
-                    <div class="load-bar-val">${e.value}</div>
+                    <div class="load-bar-val">${getLabel(e)}</div>
                 </div>`;
             }).join('');
 
