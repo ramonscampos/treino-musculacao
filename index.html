@@ -1928,10 +1928,16 @@
             const isToday = d.getTime() === today.getTime();
             const dayCode = IDX_TO_DAY[i];
             const trained = weekDayCodes.has(dayCode);
+            const isPlannedRest = !config.workoutData[dayCode] || !config.workoutData[dayCode].exercises || config.workoutData[dayCode].exercises.length === 0;
 
             let dc = 'dash-week-dot';
-            if (trained) dc += ' trained';
-            else if (!isFuture && !isToday) dc += ' missed';
+            if (trained) {
+                dc += ' trained';
+            } else if (isPlannedRest) {
+                dc += ' rest';
+            } else if (!isFuture && !isToday) {
+                dc += ' missed';
+            }
             
             if (isToday) dc += ' today';
 
