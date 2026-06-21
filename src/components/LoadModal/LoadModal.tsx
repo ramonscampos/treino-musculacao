@@ -214,7 +214,7 @@ export function LoadModal({
 								fontFamily: "Outfit",
 							}}
 						>
-							{saving ? "Salvando..." : "Salvar Cargas"}
+							{saving ? "Salvando..." : inputCount === 1 ? "Salvar Carga" : "Salvar Cargas"}
 						</button>
 					</>
 				)}

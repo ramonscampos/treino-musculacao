@@ -49,8 +49,18 @@ export function WeekOverview({ sessions, workoutDayCodes }: Props) {
 			}
 
 			if (isToday) {
+				dotClass = dotClass
+					.replace(
+						"border-[rgba(255,255,255,0.12)]",
+						"border-[var(--accent-color)]",
+					)
+					.replace(
+						"border-[rgba(255,255,255,0.18)]",
+						"border-[var(--accent-color)]",
+					);
+
 				dotClass +=
-					" shadow-[0_0_0_2.5px_var(--bg-color),0_0_0_4.5px_var(--accent-mute)]";
+					" shadow-[0_0_0_2.5px_var(--bg-color),0_0_0_4.5px_var(--accent-mute)] border-dashed";
 				if (trained)
 					dotClass = dotClass.replace(
 						"shadow-[0_0_0_2.5px_var(--bg-color),0_0_0_4.5px_var(--accent-mute)]",

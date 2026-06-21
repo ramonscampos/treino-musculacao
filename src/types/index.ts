@@ -23,6 +23,7 @@ export interface PlanExercise {
 	planId: number;
 	exerciseId: number;
 	exerciseName: string;
+	description?: string;
 	sets?: number;
 	repsMin?: number;
 	repsMax?: number;

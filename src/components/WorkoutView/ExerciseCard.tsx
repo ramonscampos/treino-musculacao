@@ -34,9 +34,19 @@ export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
 			}}
 		>
 			<div className="flex justify-between items-start gap-3">
-				<span className="font-semibold text-(--text-primary) text-[0.95rem] leading-[1.3]">
-					{ex.exerciseName}
-				</span>
+				<div className="flex-1">
+					<span className="font-semibold text-(--text-primary) text-[0.95rem] leading-[1.3]">
+						{ex.exerciseName}
+					</span>
+					{ex.description && (
+						<p
+							className="text-[0.78rem] mt-0.5 leading-tight font-medium"
+							style={{ color: "var(--text-secondary)" }}
+						>
+							{ex.description}
+						</p>
+					)}
+				</div>
 				<span
 					className="font-bold text-[0.9rem] whitespace-nowrap text-(--accent-color)"
 					style={{ fontFamily: "Outfit" }}
@@ -59,12 +69,40 @@ export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
 						⏱ {formatRest(ex.restSeconds)}
 					</span>
 				)}
+				{ex.muscleFocus && (
+					<span className="py-[0.2rem] px-[0.6rem] rounded-lg text-[0.75rem] bg-[rgba(255,255,255,0.05)] text-(--text-secondary)">
+						🎯 {ex.muscleFocus}
+					</span>
+				)}
 				{ex.note && (
 					<span className="italic text-[0.75rem] text-(--text-muted)">
 						{ex.note}
 					</span>
 				)}
 			</div>
+
+			{ex.executionCues && ex.executionCues.length > 0 && (
+				<ul
+					className="mt-0.5 space-y-1 text-[0.85rem]"
+					style={{ color: "var(--text-muted)" }}
+				>
+					{ex.executionCues.map((cue, idx) => (
+						<li
+							// biome-ignore lint/suspicious/noArrayIndexKey: cue lists are static array data from plans
+							key={idx}
+							className="list-none flex items-start gap-1.5 leading-normal"
+						>
+							<span
+								className="relative top-0.75 select-none font-bold text-[0.85rem] leading-none"
+								style={{ color: "var(--accent-color)" }}
+							>
+								›
+							</span>
+							<span>{cue}</span>
+						</li>
+					))}
+				</ul>
+			)}
 
 			<div className="flex items-center gap-2 mt-[0.4rem]">
 				<button

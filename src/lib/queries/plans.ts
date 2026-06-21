@@ -20,7 +20,7 @@ export async function getPlanExercises(
 	planId: number,
 ): Promise<PlanExercise[]> {
 	const { rows } = await db.execute({
-		sql: `SELECT pe.*, e.name AS exercise_name
+		sql: `SELECT pe.*, e.name AS exercise_name, e.description AS exercise_description
           FROM plan_exercises pe
           JOIN exercises e ON e.id = pe.exercise_id
           WHERE pe.plan_id = ?
@@ -32,6 +32,7 @@ export async function getPlanExercises(
 		planId: r.plan_id as number,
 		exerciseId: r.exercise_id as number,
 		exerciseName: r.exercise_name as string,
+		description: r.exercise_description as string | undefined,
 		sets: r.sets as number | undefined,
 		repsMin: r.reps_min as number | undefined,
 		repsMax: r.reps_max as number | undefined,
