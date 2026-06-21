@@ -1,5 +1,5 @@
-import { db } from "../db";
 import type { WorkoutSession } from "../../types";
+import { db } from "../db";
 
 export async function getSessionForDate(
 	userId: number,

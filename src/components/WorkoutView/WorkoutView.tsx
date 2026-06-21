@@ -32,14 +32,14 @@ function SkeletonCard() {
 				borderColor: "var(--card-border)",
 			}}
 		>
-			<div className="flex justify-between items-start gap-[0.75rem]">
+			<div className="flex justify-between items-start gap-3">
 				<div className="h-[1.2rem] w-1/2 rounded bg-white/5" />
 				<div className="h-[1.2rem] w-12 rounded bg-white/5" />
 			</div>
 			<div className="flex items-center gap-[0.6rem]">
-				<div className="h-[1.5rem] w-16 rounded-[0.5rem] bg-white/5" />
+				<div className="h-6 w-16 rounded-lg bg-white/5" />
 			</div>
-			<div className="flex items-center gap-[0.5rem] mt-[0.4rem]">
+			<div className="flex items-center gap-2 mt-[0.4rem]">
 				<div className="ml-auto h-[1.8rem] w-28 rounded-full bg-white/5" />
 			</div>
 		</div>
@@ -208,11 +208,11 @@ export function WorkoutView({ user }: Props) {
 
 	return (
 		<div
-			className="flex flex-col min-h-dvh mx-auto max-w-[600px]"
+			className="flex flex-col min-h-dvh mx-auto max-w-150"
 			style={{ background: "var(--bg-color)" }}
 		>
 			{/* Header */}
-			<header className="flex items-center justify-between px-6 pt-[calc(1.5rem+var(--safe-top))] pb-2 mb-[1rem]">
+			<header className="flex items-center justify-between px-6 pt-[calc(1.5rem+var(--safe-top))] pb-2 mb-4">
 				<div>
 					<div
 						className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold"
@@ -233,7 +233,7 @@ export function WorkoutView({ user }: Props) {
 			</header>
 
 			{/* Week Overview + Dashboard Button */}
-			<div className="flex gap-[0.6rem] mb-[1.25rem] px-6 items-stretch">
+			<div className="flex gap-[0.6rem] mb-5 px-6 items-stretch">
 				<WeekOverview
 					sessions={weekSessions}
 					workoutDayCodes={plans.map((p) => p.suggestedDay)}
@@ -241,7 +241,7 @@ export function WorkoutView({ user }: Props) {
 				<button
 					type="button"
 					onClick={() => setDashOpen(true)}
-					className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[1.25rem] min-w-[52px] flex items-center justify-center transition-all active:bg-[rgba(255,255,255,0.07)] active:text-[var(--accent-color)] active:border-[var(--accent-mute)] cursor-pointer"
+					className="bg-(--card-bg) border border-(--card-border) rounded-[1.25rem] min-w-13 flex items-center justify-center transition-all active:bg-[rgba(255,255,255,0.07)] active:text-(--accent-color) active:border-(--accent-mute) cursor-pointer"
 					style={{ color: "var(--text-secondary)" }}
 					title="Ver resumo"
 					aria-label="Ver resumo"
@@ -293,7 +293,7 @@ export function WorkoutView({ user }: Props) {
 								style={{ color: "var(--text-primary)" }}
 							>
 								<span
-									className="inline-block w-1 h-[1.2rem] rounded-sm flex-shrink-0"
+									className="inline-block w-1 h-[1.2rem] rounded-sm shrink-0"
 									style={{
 										background: "var(--accent-color)",
 										boxShadow: "0 0 10px var(--accent-glow)",
@@ -330,7 +330,7 @@ export function WorkoutView({ user }: Props) {
 								style={{ color: "var(--text-primary)" }}
 							>
 								<span
-									className="inline-block w-1 h-[1.2rem] rounded-sm flex-shrink-0"
+									className="inline-block w-1 h-[1.2rem] rounded-sm shrink-0"
 									style={{
 										background: "var(--accent-color)",
 										boxShadow: "0 0 10px var(--accent-glow)",
@@ -393,7 +393,7 @@ export function WorkoutView({ user }: Props) {
 								style={{ color: "var(--text-primary)" }}
 							>
 								<span
-									className="inline-block w-1 h-[1.2rem] rounded-sm flex-shrink-0"
+									className="inline-block w-1 h-[1.2rem] rounded-sm shrink-0"
 									style={{
 										background: "var(--accent-color)",
 										boxShadow: "0 0 10px var(--accent-glow)",
@@ -404,7 +404,7 @@ export function WorkoutView({ user }: Props) {
 									<button
 										type="button"
 										onClick={() => setSwitcherOpen(true)}
-										className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--accent-color)] active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+										className="p-1 rounded-md text-(--text-muted) hover:text-(--accent-color) active:scale-95 transition-all cursor-pointer flex items-center justify-center"
 										title="Trocar treino"
 									>
 										<svg
@@ -431,7 +431,7 @@ export function WorkoutView({ user }: Props) {
 									{sessionDone ? (
 										<>
 											<div
-												className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.1rem] font-bold flex-shrink-0"
+												className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.1rem] font-bold shrink-0"
 												style={{
 													background: "var(--success-bg)",
 													border: "1.5px solid var(--success)",
@@ -443,7 +443,7 @@ export function WorkoutView({ user }: Props) {
 											<button
 												type="button"
 												onClick={handleToggleDone}
-												className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] transition-all active:scale-[0.93] flex-shrink-0 cursor-pointer"
+												className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] transition-all active:scale-[0.93] shrink-0 cursor-pointer"
 												style={{
 													border: "1.5px solid rgba(255,78,78,0.5)",
 													background: "rgba(255,78,78,0.08)",
@@ -471,7 +471,7 @@ export function WorkoutView({ user }: Props) {
 										<button
 											type="button"
 											onClick={handleToggleDone}
-											className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.2rem] font-bold transition-all active:bg-[var(--accent-color)] active:text-black active:scale-[0.97] flex-shrink-0 cursor-pointer"
+											className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.2rem] font-bold transition-all active:bg-(--accent-color) active:text-black active:scale-[0.97] shrink-0 cursor-pointer"
 											style={{
 												border: "1.5px solid var(--accent-color)",
 												background: "transparent",

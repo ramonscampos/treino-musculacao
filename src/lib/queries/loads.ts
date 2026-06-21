@@ -1,5 +1,5 @@
-import { db } from "../db";
 import type { LoadLog } from "../../types";
+import { db } from "../db";
 
 export async function getLoadForDate(
 	userId: number,

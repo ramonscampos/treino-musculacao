@@ -98,7 +98,7 @@ export function LoadModal({
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: backdrop div wraps dialog and handles closing click events, button is not semantic here
 		<div
-			className="fixed inset-0 z-[10000] flex items-end justify-center transition-opacity duration-250"
+			className="fixed inset-0 z-10000 flex items-end justify-center transition-opacity duration-250"
 			style={{
 				background: "rgba(0,0,0,0.7)",
 				backdropFilter: open ? "blur(8px)" : "none",
@@ -115,7 +115,7 @@ export function LoadModal({
 			}}
 		>
 			<div
-				className="w-full max-w-[600px] transition-transform duration-300"
+				className="w-full max-w-150 transition-transform duration-300"
 				style={{
 					background: "#18181b",
 					border: "1px solid var(--card-border)",
@@ -156,7 +156,7 @@ export function LoadModal({
 									// biome-ignore lint/suspicious/noArrayIndexKey: indices are static and represent sequential workout sets
 									<div key={i} className="flex items-center gap-3">
 										<span
-											className="text-[0.8rem] font-medium min-w-[80px]"
+											className="text-[0.8rem] font-medium min-w-20"
 											style={{ color: "var(--text-secondary)" }}
 										>
 											{repsLabel}
@@ -174,7 +174,7 @@ export function LoadModal({
 												next[i] = e.target.value;
 												setWeights(next);
 											}}
-											className="flex-1 py-[0.6rem] px-3 text-[16px] font-bold text-center rounded-[0.75rem] focus:outline-none transition-all"
+											className="flex-1 py-[0.6rem] px-3 text-[16px] font-bold text-center rounded-xl focus:outline-none transition-all"
 											style={{
 												background: "rgba(255,255,255,0.06)",
 												border: "1px solid var(--card-border)",
@@ -194,7 +194,7 @@ export function LoadModal({
 											}}
 										/>
 										<span
-											className="text-[0.75rem] min-w-[24px]"
+											className="text-[0.75rem] min-w-6"
 											style={{ color: "var(--text-muted)" }}
 										>
 											kg

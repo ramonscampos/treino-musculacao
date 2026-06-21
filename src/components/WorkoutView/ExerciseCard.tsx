@@ -31,12 +31,12 @@ export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
 				border: "1px solid var(--card-border)",
 			}}
 		>
-			<div className="flex justify-between items-start gap-[0.75rem]">
-				<span className="font-semibold text-[var(--text-primary)] text-[0.95rem] leading-[1.3]">
+			<div className="flex justify-between items-start gap-3">
+				<span className="font-semibold text-(--text-primary) text-[0.95rem] leading-[1.3]">
 					{ex.exerciseName}
 				</span>
 				<span
-					className="font-bold text-[0.9rem] whitespace-nowrap text-[var(--accent-color)]"
+					className="font-bold text-[0.9rem] whitespace-nowrap text-(--accent-color)"
 					style={{ fontFamily: "Outfit" }}
 				>
 					{ex.sets
@@ -53,22 +53,22 @@ export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
 
 			<div className="flex items-center gap-[0.6rem] flex-wrap">
 				{ex.restSeconds && (
-					<span className="py-[0.2rem] px-[0.6rem] rounded-[0.5rem] text-[0.75rem] bg-[rgba(255,255,255,0.05)] text-[var(--text-secondary)]">
+					<span className="py-[0.2rem] px-[0.6rem] rounded-lg text-[0.75rem] bg-[rgba(255,255,255,0.05)] text-(--text-secondary)">
 						⏱ {formatRest(ex.restSeconds)}
 					</span>
 				)}
 				{ex.note && (
-					<span className="italic text-[0.75rem] text-[var(--text-muted)]">
+					<span className="italic text-[0.75rem] text-(--text-muted)">
 						{ex.note}
 					</span>
 				)}
 			</div>
 
-			<div className="flex items-center gap-[0.5rem] mt-[0.4rem]">
+			<div className="flex items-center gap-2 mt-[0.4rem]">
 				<button
 					type="button"
 					onClick={onOpenLoad}
-					className="ml-auto flex items-center gap-[0.35rem] py-[0.3rem] px-[0.75rem] border rounded-full transition-all active:scale-[0.96] cursor-pointer"
+					className="ml-auto flex items-center gap-[0.35rem] py-[0.3rem] px-3 border rounded-full transition-all active:scale-[0.96] cursor-pointer"
 					style={
 						hasLoad
 							? {
@@ -92,7 +92,7 @@ export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
 						<>
 							{cargaDisplay}
 							<span
-								className="text-[0.65rem] font-normal ml-[2px]"
+								className="text-[0.65rem] font-normal ml-0.5"
 								style={{ color: "var(--text-muted)" }}
 							>
 								kg

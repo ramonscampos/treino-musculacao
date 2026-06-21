@@ -8,7 +8,7 @@ interface Props {
 
 export function UserSelector({ users, onSelect }: Props) {
 	return (
-		<div className="flex flex-col items-center justify-center min-h-dvh gap-8 p-6 mx-auto max-w-[600px]">
+		<div className="flex flex-col items-center justify-center min-h-dvh gap-8 p-6 mx-auto max-w-150">
 			<div className="text-center">
 				<p
 					className="text-xs tracking-widest uppercase mb-2"

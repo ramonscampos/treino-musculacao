@@ -1,5 +1,5 @@
+import type { PlanExercise, WorkoutPlan } from "../../types";
 import { db } from "../db";
-import type { WorkoutPlan, PlanExercise } from "../../types";
 
 export async function getPlansForUser(userId: number): Promise<WorkoutPlan[]> {
 	const { rows } = await db.execute({

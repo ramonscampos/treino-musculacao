@@ -68,14 +68,14 @@ export function WeekOverview({ sessions, workoutDayCodes }: Props) {
 	}, [trainedDays, workoutDayCodes]);
 
 	return (
-		<div className="flex-1 flex justify-between items-center gap-[0.2rem] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[1.25rem] py-[0.85rem] px-4">
+		<div className="flex-1 flex justify-between items-center gap-[0.2rem] bg-(--card-bg) border border-(--card-border) rounded-[1.25rem] py-[0.85rem] px-4">
 			{weekDays.map((day) => {
 				return (
 					<div
 						key={day.id}
 						className="flex flex-col items-center gap-[0.3rem] flex-1"
 					>
-						<span className="text-[0.62rem] text-[var(--text-muted)] font-bold uppercase">
+						<span className="text-[0.62rem] text-(--text-muted) font-bold uppercase">
 							{day.letter}
 						</span>
 						<div

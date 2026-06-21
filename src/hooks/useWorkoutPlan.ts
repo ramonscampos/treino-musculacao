@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { getPlansForUser, getPlanExercises } from "../lib/queries/plans";
+import { useEffect, useState } from "react";
+import { getPlanExercises, getPlansForUser } from "../lib/queries/plans";
 import { getSessionForDate } from "../lib/queries/sessions";
 import {
-	JS_DAY_TO_KEY,
 	DAY_ORDER,
 	type DayKey,
-	type WorkoutPlan,
+	JS_DAY_TO_KEY,
 	type PlanExercise,
+	type WorkoutPlan,
 } from "../types";
 
 function getTargetDateStr(dayKey: DayKey): string {

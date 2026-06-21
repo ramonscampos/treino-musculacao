@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { getLoadForDate, getLastLoad, upsertLoad } from "../lib/queries/loads";
+import { getLastLoad, getLoadForDate, upsertLoad } from "../lib/queries/loads";
 import { todayStr } from "./useWorkoutPlan";
 
 export function useLoadLogs(userId: number) {

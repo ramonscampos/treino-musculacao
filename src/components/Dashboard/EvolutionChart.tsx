@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getAllLoadsForExercise } from "../../lib/queries/loads";
 import type { LoadLog } from "../../types";
 
@@ -24,10 +24,7 @@ export function EvolutionChart({ userId, exerciseId, exerciseName }: Props) {
 			: Math.round(
 					log.sets.reduce((s, set) => s + set.weight, 0) / log.sets.length,
 				);
-	const getLabel = (log: LoadLog) =>
-		log.sets.length > 1
-			? log.sets.map((s) => s.weight).join("/")
-			: String(log.sets[0]?.weight ?? 0);
+	const getLabel = (log: LoadLog) => `${getRef(log)} kg`;
 	const maxVal = Math.max(...last5.map(getRef), 1);
 
 	return (
@@ -48,10 +45,10 @@ export function EvolutionChart({ userId, exerciseId, exerciseName }: Props) {
 					return (
 						<div
 							key={log.id}
-							className="flex flex-col items-center gap-[0.2rem] flex-1 max-w-[32px]"
+							className="flex flex-col items-center gap-[0.2rem] flex-1 max-w-8"
 						>
 							<div
-								className="w-full rounded-t-[2px] transition-all"
+								className="w-full rounded-t-xs transition-all"
 								style={{
 									height: h,
 									background: "var(--accent-color)",

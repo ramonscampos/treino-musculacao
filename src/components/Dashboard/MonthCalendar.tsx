@@ -103,11 +103,11 @@ export function MonthCalendar({
 								}
 							}}
 						>
-							<span className="relative z-[3]">{day}</span>
+							<span className="relative z-3">{day}</span>
 							{/* Trained dot */}
 							{isDone && (
 								<span
-									className="absolute inset-[6px] rounded-full z-[1]"
+									className="absolute inset-1.5 rounded-full z-1"
 									style={{
 										background: "var(--accent-color)",
 										boxShadow: "0 0 10px var(--accent-glow)",
@@ -117,20 +117,20 @@ export function MonthCalendar({
 							{/* Missed ring */}
 							{isMissed && (
 								<span
-									className="absolute inset-[10px] rounded-full z-[1]"
+									className="absolute inset-2.5 rounded-full z-1"
 									style={{ border: "1.5px solid rgba(255, 78, 78, 0.4)" }}
 								/>
 							)}
 							{/* Today ring */}
 							{isToday && !isDone && (
 								<span
-									className="absolute inset-[2px] rounded-full z-[1] opacity-40"
+									className="absolute inset-0.5 rounded-full z-1 opacity-40"
 									style={{ border: "1px solid var(--accent-color)" }}
 								/>
 							)}
 							{isToday && isDone && (
 								<span
-									className="absolute rounded-full z-[1] opacity-80"
+									className="absolute rounded-full z-1 opacity-80"
 									style={{
 										border: "1px solid var(--accent-color)",
 										inset: "-2px",
@@ -140,7 +140,7 @@ export function MonthCalendar({
 							{/* Selected pulse */}
 							{isSelected && (
 								<span
-									className="absolute rounded-[12px] z-[2]"
+									className="absolute rounded-xl z-2"
 									style={{
 										border: "2px solid var(--accent-color)",
 										animation: "pulseSelect 1.5s infinite",
@@ -178,7 +178,7 @@ export function MonthCalendar({
 								: "Sem registro de treino"}
 						</span>
 					</div>
-					<label className="relative inline-block w-[52px] h-7 cursor-pointer">
+					<label className="relative inline-block w-13 h-7 cursor-pointer">
 						<input
 							type="checkbox"
 							className="sr-only"
@@ -186,7 +186,7 @@ export function MonthCalendar({
 							onChange={() => onToggleDate(selectedDate)}
 						/>
 						<div
-							className="relative w-[52px] h-7 rounded-full transition-all duration-200"
+							className="relative w-13 h-7 rounded-full transition-all duration-200"
 							style={{
 								background: doneDates.has(selectedDate)
 									? "var(--accent-color)"
@@ -195,7 +195,7 @@ export function MonthCalendar({
 							}}
 						>
 							<div
-								className="absolute top-[2px] left-[2px] w-[22px] h-[22px] rounded-full transition-all duration-200"
+								className="absolute top-0.5 left-0.5 w-5.5 h-5.5 rounded-full transition-all duration-200"
 								style={{
 									background: doneDates.has(selectedDate) ? "#000" : "#fff",
 									transform: doneDates.has(selectedDate)

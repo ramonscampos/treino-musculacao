@@ -239,14 +239,14 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 
 	return (
 		<div
-			className="fixed inset-0 z-[10000] overflow-y-auto mx-auto max-w-[600px] transition-transform duration-[420ms]"
+			className="fixed inset-0 z-10000 overflow-y-auto mx-auto max-w-150 transition-transform duration-420"
 			style={{
 				background: "var(--bg-color)",
 				transform: open ? "translateY(0)" : "translateY(100%)",
 				transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
 			}}
 		>
-			<div className="max-w-[600px] mx-auto p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))]">
+			<div className="max-w-150 mx-auto p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))]">
 				{/* Header */}
 				<div className="flex items-center justify-between mb-8">
 					<h2
@@ -284,7 +284,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 							border: "1px solid var(--accent-mute)",
 						}}
 					>
-						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-[var(--text-muted)] font-semibold">
+						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-(--text-muted) font-semibold">
 							🔥 Sequência Atual
 						</span>
 						<span
@@ -293,7 +293,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 						>
 							{streak}
 						</span>
-						<span className="text-[0.75rem] text-[var(--text-secondary)] mt-0.5">
+						<span className="text-[0.75rem] text-(--text-secondary) mt-0.5">
 							{streak === 1
 								? "dia consecutivo treinando"
 								: "dias consecutivos treinando"}
@@ -308,7 +308,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 							border: "1px solid var(--card-border)",
 						}}
 					>
-						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-[var(--text-muted)] font-semibold">
+						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-(--text-muted) font-semibold">
 							Este Mês
 						</span>
 						<span
@@ -317,7 +317,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 						>
 							{monthCount}
 						</span>
-						<span className="text-[0.75rem] text-[var(--text-secondary)]">
+						<span className="text-[0.75rem] text-(--text-secondary)">
 							treinos
 						</span>
 					</div>
@@ -330,7 +330,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 							border: "1px solid var(--card-border)",
 						}}
 					>
-						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-[var(--text-muted)] font-semibold">
+						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-(--text-muted) font-semibold">
 							Total Geral
 						</span>
 						<span
@@ -339,7 +339,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 						>
 							{totalCount}
 						</span>
-						<span className="text-[0.75rem] text-[var(--text-secondary)]">
+						<span className="text-[0.75rem] text-(--text-secondary)">
 							treinos
 						</span>
 					</div>
@@ -352,7 +352,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 							border: "1px solid var(--card-border)",
 						}}
 					>
-						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-[var(--text-muted)] font-semibold mb-2">
+						<span className="text-[0.72rem] uppercase tracking-[0.08rem] text-(--text-muted) font-semibold mb-2">
 							Semana Atual
 						</span>
 						<div className="grid grid-cols-7 gap-[0.4rem]">
@@ -361,7 +361,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 									key={dot.id}
 									className="flex flex-col items-center gap-[0.35rem]"
 								>
-									<span className="text-[0.6rem] text-[var(--text-muted)] font-bold uppercase">
+									<span className="text-[0.6rem] text-(--text-muted) font-bold uppercase">
 										{dot.letter}
 									</span>
 									<div
@@ -380,7 +380,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 
 				{/* Evolução de Cargas */}
 				<div className="mb-8">
-					<p className="text-[0.7rem] uppercase tracking-[0.15rem] text-[var(--text-muted)] font-bold mb-3">
+					<p className="text-[0.7rem] uppercase tracking-[0.15rem] text-(--text-muted) font-bold mb-3">
 						Evolução de cargas
 					</p>
 					{exercises.length > 0 ? (
@@ -417,14 +417,14 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 				{/* Frequência Mensal */}
 				<div className="mb-8">
 					<div className="flex items-center justify-between mb-4">
-						<p className="text-[0.7rem] uppercase tracking-[0.15rem] text-[var(--text-muted)] font-bold">
+						<p className="text-[0.7rem] uppercase tracking-[0.15rem] text-(--text-muted) font-bold">
 							Frequência Mensal
 						</p>
 						<div className="flex items-center gap-2">
 							<button
 								type="button"
 								onClick={() => changeMonth(-1)}
-								className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:bg-[var(--accent-soft)] active:border-[var(--accent-color)] active:text-[var(--accent-color)]"
+								className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:bg-(--accent-soft) active:border-(--accent-color) active:text-(--accent-color)"
 								style={{
 									background: "rgba(255,255,255,0.05)",
 									border: "1px solid var(--card-border)",
@@ -455,7 +455,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 							<button
 								type="button"
 								onClick={() => changeMonth(1)}
-								className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:bg-[var(--accent-soft)] active:border-[var(--accent-color)] active:text-[var(--accent-color)]"
+								className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:bg-(--accent-soft) active:border-(--accent-color) active:text-(--accent-color)"
 								style={{
 									background: "rgba(255,255,255,0.05)",
 									border: "1px solid var(--card-border)",
@@ -494,7 +494,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 					<button
 						type="button"
 						onClick={handleExport}
-						className="py-2 px-4 rounded-[0.5rem] text-[0.75rem] transition-all active:border-[var(--accent-color)] active:text-[var(--accent-color)]"
+						className="py-2 px-4 rounded-lg text-[0.75rem] transition-all active:border-(--accent-color) active:text-(--accent-color)"
 						style={{
 							background: "transparent",
 							border: "1px solid var(--card-border)",
@@ -506,7 +506,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 					<button
 						type="button"
 						onClick={handleImport}
-						className="py-2 px-4 rounded-[0.5rem] text-[0.75rem] transition-all active:border-[var(--accent-color)] active:text-[var(--accent-color)]"
+						className="py-2 px-4 rounded-lg text-[0.75rem] transition-all active:border-(--accent-color) active:text-(--accent-color)"
 						style={{
 							background: "transparent",
 							border: "1px solid var(--card-border)",

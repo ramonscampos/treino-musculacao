@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { useUser } from "./hooks/useUser";
 import { UserSelector } from "./components/UserSelector";
 import { WorkoutView } from "./components/WorkoutView/WorkoutView";
+import { useUser } from "./hooks/useUser";
 import { USER_THEMES } from "./types";
 
 export function App() {

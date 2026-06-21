@@ -68,7 +68,7 @@ export function BottomSheet({ open, onClose, children, title }: Props) {
 			}}
 		>
 			<div
-				className="w-full max-w-[600px] rounded-t-2xl p-6 max-h-[85dvh] overflow-y-auto transition-transform duration-300"
+				className="w-full max-w-150 rounded-t-2xl p-6 max-h-[85dvh] overflow-y-auto transition-transform duration-300"
 				style={{
 					background: "#16161a",
 					border: "1px solid var(--card-border)",
