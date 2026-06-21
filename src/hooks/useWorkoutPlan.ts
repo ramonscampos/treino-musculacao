@@ -1,47 +1,125 @@
-import { useState, useEffect } from 'react'
-import { getPlansForUser, getPlanExercises } from '../lib/queries/plans'
-import { getSessionForDate } from '../lib/queries/sessions'
-import { JS_DAY_TO_KEY, type DayKey, type WorkoutPlan, type PlanExercise } from '../types'
+import { useState, useEffect } from "react";
+import { getPlansForUser, getPlanExercises } from "../lib/queries/plans";
+import { getSessionForDate } from "../lib/queries/sessions";
+import {
+	JS_DAY_TO_KEY,
+	DAY_ORDER,
+	type DayKey,
+	type WorkoutPlan,
+	type PlanExercise,
+} from "../types";
+
+function getTargetDateStr(dayKey: DayKey): string {
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	const currentDayIdx = today.getDay(); // 0 = Dom, 1 = Seg, ...
+	const targetDayIdx = DAY_ORDER.indexOf(dayKey);
+
+	const targetDate = new Date(today);
+	targetDate.setDate(today.getDate() - currentDayIdx + targetDayIdx);
+	return targetDate.toISOString().slice(0, 10);
+}
 
 export function todayKey(): DayKey {
-  return JS_DAY_TO_KEY[new Date().getDay()]
+	return JS_DAY_TO_KEY[new Date().getDay()];
 }
 
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10)
+	return new Date().toISOString().slice(0, 10);
 }
 
-export function useWorkoutPlan(userId: number) {
-  const [plans, setPlans] = useState<WorkoutPlan[]>([])
-  const [selectedDay, setSelectedDay] = useState<DayKey>(todayKey())
-  const [overridePlanId, setOverridePlanId] = useState<number | null>(null)
-  const [exercises, setExercises] = useState<PlanExercise[]>([])
-  const [loading, setLoading] = useState(true)
+const exercisesCache = new Map<number, PlanExercise[]>();
 
-  useEffect(() => {
-    getPlansForUser(userId).then(setPlans)
-  }, [userId])
+export function useWorkoutPlan(userId: number, refreshTrigger?: number) {
+	const [plans, setPlans] = useState<WorkoutPlan[]>([]);
+	const [selectedDay, setSelectedDay] = useState<DayKey>(todayKey());
+	const [overridePlanId, setOverridePlanId] = useState<number | null>(null);
+	const [exercises, setExercises] = useState<PlanExercise[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [resolvingOverride, setResolvingOverride] = useState(true);
 
-  const activePlan = overridePlanId
-    ? plans.find(p => p.id === overridePlanId)
-    : plans.find(p => p.suggestedDay === selectedDay)
+	const [prevSelectedDay, setPrevSelectedDay] = useState(selectedDay);
+	const [prevUserId, setPrevUserId] = useState(userId);
+	const [prevRefreshTrigger, setPrevRefreshTrigger] = useState(refreshTrigger);
 
-  useEffect(() => {
-    if (!activePlan) { setExercises([]); setLoading(false); return }
-    setLoading(true)
-    getPlanExercises(activePlan.id).then(ex => { setExercises(ex); setLoading(false) })
-  }, [activePlan?.id])
+	if (
+		selectedDay !== prevSelectedDay ||
+		userId !== prevUserId ||
+		refreshTrigger !== prevRefreshTrigger
+	) {
+		setPrevSelectedDay(selectedDay);
+		setPrevUserId(userId);
+		setPrevRefreshTrigger(refreshTrigger);
+		setResolvingOverride(true);
+	}
 
-  useEffect(() => {
-    if (selectedDay !== todayKey()) { setOverridePlanId(null); return }
-    getSessionForDate(userId, todayStr()).then(s => {
-      if (s) setOverridePlanId(s.planId)
-    })
-  }, [userId, selectedDay])
+	useEffect(() => {
+		getPlansForUser(userId).then(setPlans);
+	}, [userId]);
 
-  return {
-    plans, selectedDay, setSelectedDay,
-    activePlan, overridePlanId, setOverridePlanId,
-    exercises, loading,
-  }
+	const activePlan = resolvingOverride
+		? null
+		: overridePlanId
+			? plans.find((p) => p.id === overridePlanId)
+			: plans.find((p) => p.suggestedDay === selectedDay);
+
+	useEffect(() => {
+		if (!activePlan) {
+			const timer = setTimeout(() => {
+				setExercises([]);
+				setLoading(false);
+			}, 0);
+			return () => clearTimeout(timer);
+		}
+
+		if (exercisesCache.has(activePlan.id)) {
+			const timer = setTimeout(() => {
+				setExercises(exercisesCache.get(activePlan.id) || []);
+				setLoading(false);
+			}, 0);
+			return () => clearTimeout(timer);
+		}
+
+		let active = true;
+		const timer = setTimeout(() => {
+			if (active) setLoading(true);
+		}, 0);
+
+		getPlanExercises(activePlan.id).then((ex) => {
+			if (!active) return;
+			clearTimeout(timer);
+			exercisesCache.set(activePlan.id, ex);
+			setExercises(ex);
+			setLoading(false);
+		});
+
+		return () => {
+			active = false;
+			clearTimeout(timer);
+		};
+	}, [activePlan]);
+
+	useEffect(() => {
+		void refreshTrigger;
+		const targetDate = getTargetDateStr(selectedDay);
+		getSessionForDate(userId, targetDate).then((s) => {
+			if (s) {
+				setOverridePlanId(s.planId);
+			} else {
+				setOverridePlanId(null);
+			}
+			setResolvingOverride(false);
+		});
+	}, [userId, selectedDay, refreshTrigger]);
+
+	return {
+		plans,
+		selectedDay,
+		setSelectedDay,
+		activePlan,
+		overridePlanId,
+		setOverridePlanId,
+		exercises,
+		loading: loading || resolvingOverride,
+	};
 }

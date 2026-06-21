@@ -1,6 +1,6 @@
-import { createClient } from '@libsql/client'
+import { createClient } from "@libsql/client";
 
 export const db = createClient({
-  url: import.meta.env.VITE_TURSO_DATABASE_URL,
-  authToken: import.meta.env.VITE_TURSO_AUTH_TOKEN,
-})
+	url: import.meta.env.VITE_TURSO_DATABASE_URL,
+	authToken: import.meta.env.VITE_TURSO_AUTH_TOKEN,
+});

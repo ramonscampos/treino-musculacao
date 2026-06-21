@@ -1,93 +1,108 @@
-import type { PlanExercise } from '../../types'
+import type { PlanExercise } from "../../types";
 
 interface Props {
-  exercise: PlanExercise
-  lastWeights: number[]
-  onOpenLoad: () => void
-  isSupersetPair?: boolean
-}
-
-function formatSets(ex: PlanExercise): string {
-  if (!ex.sets) return ''
-  const reps = ex.repsMin
-    ? ex.repsMax && ex.repsMax !== ex.repsMin
-      ? `${ex.repsMin}–${ex.repsMax}`
-      : String(ex.repsMin)
-    : ''
-  return reps ? `${ex.sets}x${reps}` : `${ex.sets} séries`
+	exercise: PlanExercise;
+	lastWeights: number[];
+	onOpenLoad: () => void;
 }
 
 function formatRest(seconds?: number): string {
-  if (!seconds) return ''
-  return seconds >= 60 ? `${seconds / 60}min` : `${seconds}s`
+	if (!seconds) return "";
+	return seconds >= 60 ? `${seconds / 60}min` : `${seconds}s`;
 }
 
 function formatWeights(weights: number[]): string {
-  if (weights.length === 0) return ''
-  const unique = [...new Set(weights)]
-  return unique.length === 1 ? `${unique[0]}kg` : weights.map(w => w || '—').join('/')
+	if (weights.length === 0) return "";
+	const unique = [...new Set(weights)];
+	return unique.length === 1
+		? `${unique[0]}`
+		: weights.map((w) => w || "—").join("/");
 }
 
-export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad, isSupersetPair }: Props) {
-  const hasLoad = lastWeights.length > 0 && lastWeights.some(w => w > 0)
+export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
+	const hasLoad = lastWeights.length > 0 && lastWeights.some((w) => w > 0);
+	const cargaDisplay = hasLoad ? formatWeights(lastWeights) : null;
 
-  return (
-    <div
-      className="p-4 rounded-xl transition-all"
-      style={{
-        background: 'var(--card-bg)',
-        border: `1px solid ${isSupersetPair ? 'var(--accent-mute)' : 'var(--card-border)'}`,
-      }}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <p className="font-semibold leading-snug flex-1" style={{ color: 'var(--text-primary)' }}>
-          {ex.exerciseName}
-        </p>
-        <button
-          onClick={onOpenLoad}
-          className="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold transition-all active:scale-95"
-          style={hasLoad
-            ? { background: 'var(--accent-soft)', color: 'var(--accent-color)', border: '1px solid var(--accent-mute)' }
-            : { background: 'var(--card-bg)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }
-          }
-        >
-          {hasLoad ? formatWeights(lastWeights) : '+ carga'}
-        </button>
-      </div>
+	return (
+		<div
+			className="flex flex-col gap-[0.6rem] py-4 px-[1.1rem] rounded-2xl transition-all"
+			style={{
+				background: "rgba(255,255,255,0.02)",
+				border: "1px solid var(--card-border)",
+			}}
+		>
+			<div className="flex justify-between items-start gap-[0.75rem]">
+				<span className="font-semibold text-[var(--text-primary)] text-[0.95rem] leading-[1.3]">
+					{ex.exerciseName}
+				</span>
+				<span
+					className="font-bold text-[0.9rem] whitespace-nowrap text-[var(--accent-color)]"
+					style={{ fontFamily: "Outfit" }}
+				>
+					{ex.sets
+						? ex.repsMin && ex.repsMax
+							? ex.repsMin === ex.repsMax
+								? `${ex.sets}x${ex.repsMin}`
+								: `${ex.sets}x${ex.repsMin}-${ex.repsMax}`
+							: ex.repsMin
+								? `${ex.sets}x${ex.repsMin}`
+								: `${ex.sets} séries`
+						: ""}
+				</span>
+			</div>
 
-      {ex.muscleFocus && (
-        <p className="text-xs mt-1 font-medium" style={{ color: 'var(--accent-color)' }}>
-          {ex.muscleFocus}
-        </p>
-      )}
+			<div className="flex items-center gap-[0.6rem] flex-wrap">
+				{ex.restSeconds && (
+					<span className="py-[0.2rem] px-[0.6rem] rounded-[0.5rem] text-[0.75rem] bg-[rgba(255,255,255,0.05)] text-[var(--text-secondary)]">
+						⏱ {formatRest(ex.restSeconds)}
+					</span>
+				)}
+				{ex.note && (
+					<span className="italic text-[0.75rem] text-[var(--text-muted)]">
+						{ex.note}
+					</span>
+				)}
+			</div>
 
-      <div className="flex items-center gap-3 mt-2">
-        <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{formatSets(ex)}</span>
-        {ex.restSeconds && (
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            Descanso: {formatRest(ex.restSeconds)}
-          </span>
-        )}
-      </div>
-
-      {ex.executionCues.length > 0 && (
-        <ul className="mt-2 space-y-0.5">
-          {ex.executionCues.map((cue, i) => (
-            <li key={i} className="text-xs flex gap-1.5" style={{ color: 'var(--text-muted)' }}>
-              <span style={{ color: 'var(--accent-mute)' }}>•</span>
-              {cue}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {ex.note && (
-        <p className="text-xs mt-2 italic" style={{ color: 'var(--text-muted)' }}>{ex.note}</p>
-      )}
-
-      {ex.isSupersetWith && (
-        <p className="text-xs mt-2" style={{ color: 'var(--accent-color)' }}>superset ↓</p>
-      )}
-    </div>
-  )
+			<div className="flex items-center gap-[0.5rem] mt-[0.4rem]">
+				<button
+					type="button"
+					onClick={onOpenLoad}
+					className="ml-auto flex items-center gap-[0.35rem] py-[0.3rem] px-[0.75rem] border rounded-full transition-all active:scale-[0.96] cursor-pointer"
+					style={
+						hasLoad
+							? {
+									background: "rgba(255,255,255,0.06)",
+									borderColor: "var(--card-border)",
+									color: "var(--accent-color)",
+									fontFamily: "Outfit",
+									fontWeight: 700,
+									fontSize: "0.9rem",
+								}
+							: {
+									background: "rgba(255,255,255,0.06)",
+									borderColor: "var(--card-border)",
+									color: "var(--text-muted)",
+									fontWeight: 400,
+									fontSize: "0.8rem",
+								}
+					}
+				>
+					{hasLoad ? (
+						<>
+							{cargaDisplay}
+							<span
+								className="text-[0.65rem] font-normal ml-[2px]"
+								style={{ color: "var(--text-muted)" }}
+							>
+								kg
+							</span>
+						</>
+					) : (
+						"Registrar carga"
+					)}
+				</button>
+			</div>
+		</div>
+	);
 }
