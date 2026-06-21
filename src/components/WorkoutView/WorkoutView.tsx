@@ -275,7 +275,7 @@ export function WorkoutView({ user }: Props) {
 			</div>
 
 			{/* Content */}
-			<main className="flex-1 px-4 sm:px-6 pb-32">
+			<main className="flex-1 px-4 sm:px-6 pb-0">
 				{loading ? (
 					<div
 						className="animate-fade-in p-4 sm:p-6"
