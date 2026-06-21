@@ -26,7 +26,7 @@ export function DayTabs({ selected, onSelect, todayKey }: Props) {
 						type="button"
 						key={day}
 						onClick={() => onSelect(day)}
-						className="flex-1 py-[0.55rem] px-[0.85rem] rounded-[0.65rem] text-[0.8rem] font-semibold whitespace-nowrap transition-all border-none bg-transparent text-center"
+						className="flex-1 min-w-0 py-[0.55rem] px-[0.4rem] sm:px-[0.85rem] rounded-[0.65rem] text-[0.75rem] sm:text-[0.8rem] font-semibold whitespace-nowrap transition-all border-none bg-transparent text-center overflow-hidden"
 						style={
 							isSelected
 								? { background: "var(--accent-color)", color: "#000" }

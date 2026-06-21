@@ -212,7 +212,7 @@ export function WorkoutView({ user }: Props) {
 			style={{ background: "var(--bg-color)" }}
 		>
 			{/* Header */}
-			<header className="flex items-center justify-between px-6 pt-[calc(1.5rem+var(--safe-top))] pb-2 mb-4">
+			<header className="flex items-center justify-between px-4 sm:px-6 pt-[calc(1.5rem+var(--safe-top))] pb-2 mb-4">
 				<div>
 					<div
 						className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold"
@@ -233,7 +233,7 @@ export function WorkoutView({ user }: Props) {
 			</header>
 
 			{/* Week Overview + Dashboard Button */}
-			<div className="flex gap-[0.6rem] mb-5 px-6 items-stretch">
+			<div className="flex gap-[0.6rem] mb-5 px-4 sm:px-6 items-stretch">
 				<WeekOverview
 					sessions={weekSessions}
 					workoutDayCodes={plans.map((p) => p.suggestedDay)}
@@ -266,7 +266,7 @@ export function WorkoutView({ user }: Props) {
 			</div>
 
 			{/* Tabs */}
-			<div className="px-6 mb-6">
+			<div className="px-4 sm:px-6 mb-6">
 				<DayTabs
 					selected={selectedDay}
 					onSelect={setSelectedDay}
@@ -275,15 +275,14 @@ export function WorkoutView({ user }: Props) {
 			</div>
 
 			{/* Content */}
-			<main className="flex-1 px-6 pb-32">
+			<main className="flex-1 px-4 sm:px-6 pb-32">
 				{loading ? (
 					<div
-						className="animate-fade-in"
+						className="animate-fade-in p-4 sm:p-6"
 						style={{
 							background: "var(--card-bg)",
 							border: "1px solid var(--card-border)",
 							borderRadius: "1.5rem",
-							padding: "1.5rem",
 							backdropFilter: "blur(10px)",
 						}}
 					>
@@ -315,12 +314,11 @@ export function WorkoutView({ user }: Props) {
 					</div>
 				) : exercises.length === 0 ? (
 					<div
-						className="animate-fade-in"
+						className="animate-fade-in p-4 sm:p-6"
 						style={{
 							background: "var(--card-bg)",
 							border: "1px solid var(--card-border)",
 							borderRadius: "1.5rem",
-							padding: "1.5rem",
 							backdropFilter: "blur(10px)",
 						}}
 					>
@@ -378,18 +376,17 @@ export function WorkoutView({ user }: Props) {
 					</div>
 				) : (
 					<div
-						className="animate-fade-in"
+						className="animate-fade-in p-4 sm:p-6"
 						style={{
 							background: "var(--card-bg)",
 							border: "1px solid var(--card-border)",
 							borderRadius: "1.5rem",
-							padding: "1.5rem",
 							backdropFilter: "blur(10px)",
 						}}
 					>
-						<div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
+						<div className="flex items-center justify-between mb-5 gap-4">
 							<h2
-								className="flex items-center gap-3 text-[1.1rem] font-bold"
+								className="flex items-center gap-3 text-[1.1rem] font-bold min-w-0"
 								style={{ color: "var(--text-primary)" }}
 							>
 								<span
@@ -399,12 +396,12 @@ export function WorkoutView({ user }: Props) {
 										boxShadow: "0 0 10px var(--accent-glow)",
 									}}
 								/>
-								{activePlan?.name ?? ""}
+								<span className="break-words">{activePlan?.name ?? ""}</span>
 								{plans.length > 1 && (
 									<button
 										type="button"
 										onClick={() => setSwitcherOpen(true)}
-										className="p-1 rounded-md text-(--text-muted) hover:text-(--accent-color) active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+										className="p-1 rounded-md text-(--text-muted) hover:text-(--accent-color) active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0 self-center"
 										title="Trocar treino"
 									>
 										<svg
@@ -427,7 +424,7 @@ export function WorkoutView({ user }: Props) {
 								)}
 							</h2>
 							{exercises.length > 0 && (
-								<div className="flex items-center gap-2">
+								<div className="flex items-center gap-2 shrink-0 self-center">
 									{sessionDone ? (
 										<>
 											<div
