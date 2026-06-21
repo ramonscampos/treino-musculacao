@@ -49,7 +49,7 @@ export function Dashboard({ userId, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col overflow-y-auto" style={{ background: 'var(--bg-color)' }}>
+    <div className="fixed inset-0 z-40 flex flex-col overflow-y-auto mx-auto" style={{ background: 'var(--bg-color)', maxWidth: 600 }}>
       <header className="flex items-center justify-between px-4 pt-12 pb-4">
         <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Dashboard</h2>
         <button onClick={onClose} className="text-2xl leading-none" style={{ color: 'var(--text-muted)' }}>×</button>

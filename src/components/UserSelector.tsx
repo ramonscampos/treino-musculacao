@@ -8,7 +8,7 @@ interface Props {
 
 export function UserSelector({ users, onSelect }: Props) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-dvh gap-8 p-6">
+    <div className="flex flex-col items-center justify-center min-h-dvh gap-8 p-6 mx-auto" style={{ maxWidth: 600 }}>
       <div className="text-center">
         <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--text-muted)' }}>
           Iron Protocol

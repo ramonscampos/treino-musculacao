@@ -60,7 +60,7 @@ export function WorkoutView({ userId }: Props) {
   const isToday = selectedDay === todayKey()
 
   return (
-    <div className="flex flex-col min-h-dvh" style={{ background: 'var(--bg-color)' }}>
+    <div className="flex flex-col min-h-dvh mx-auto" style={{ background: 'var(--bg-color)', maxWidth: 600 }}>
       <header className="flex items-center justify-between px-4 pt-12 pb-2">
         <div>
           <p className="text-xs tracking-widest uppercase font-bold" style={{ color: 'var(--accent-color)' }}>
