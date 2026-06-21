@@ -8,7 +8,9 @@ interface Props {
 
 function formatRest(seconds?: number): string {
 	if (!seconds) return "";
-	return seconds >= 60 ? `${seconds / 60}min` : `${seconds}s`;
+	return seconds >= 60 && seconds % 60 === 0
+		? `${seconds / 60}min`
+		: `${seconds}s`;
 }
 
 function formatWeights(weights: number[]): string {
