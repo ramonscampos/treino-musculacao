@@ -1,5 +1,5 @@
 {
-  "name": "temp-scaffold",
+  "name": "iron-protocol",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "tsx scripts/seed.ts",
+    "migrate": "tsx scripts/migrate-localstorage.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
