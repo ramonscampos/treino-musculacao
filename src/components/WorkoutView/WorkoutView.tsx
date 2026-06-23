@@ -118,6 +118,9 @@ export function WorkoutView({ user }: Props) {
 	}, []);
 
 	const {
+		programs,
+		selectedProgramId,
+		setSelectedProgramId,
 		plans,
 		selectedDay,
 		setSelectedDay,
@@ -246,6 +249,26 @@ export function WorkoutView({ user }: Props) {
 					<StreakWidget streak={streak} />
 				</div>
 			</header>
+
+			{/* Program selector */}
+			{programs.length > 1 && (
+				<div className="flex gap-2 mb-3 px-4 sm:px-6 overflow-x-auto">
+					{programs.map((p) => (
+						<button
+							key={p.id}
+							type="button"
+							onClick={() => setSelectedProgramId(p.id)}
+							className="px-3 py-1.5 rounded-xl text-[0.8rem] font-semibold whitespace-nowrap transition-all active:opacity-70 cursor-pointer"
+							style={{
+								background: selectedProgramId === p.id ? "var(--accent-color)" : "rgba(255,255,255,0.05)",
+								color: selectedProgramId === p.id ? "#000" : "var(--text-secondary)",
+							}}
+						>
+							{p.name}
+						</button>
+					))}
+				</div>
+			)}
 
 			{/* Week Overview + Dashboard Button */}
 			<div className="flex gap-[0.6rem] mb-5 px-4 sm:px-6 items-stretch">
@@ -550,6 +573,7 @@ export function WorkoutView({ user }: Props) {
 			)}
 			{manageOpen && (
 				<ManageScreen
+					programs={programs}
 					plans={plans}
 					onClose={() => setManageOpen(false)}
 					onChanged={triggerRefresh}

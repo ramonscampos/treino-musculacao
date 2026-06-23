@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { getPlansForUser } from "../../lib/queries/plans";
-import type { WorkoutPlan } from "../../types";
+import type { Program, WorkoutPlan } from "../../types";
 import { PlanEditor } from "./PlanEditor";
 import { PlanList } from "./PlanList";
+import { ProgramList } from "./ProgramList";
 
 interface Props {
+	programs: Program[];
 	plans: WorkoutPlan[];
 	onClose: () => void;
 	onChanged: () => void;
 }
 
-export function ManageScreen({ plans: initialPlans, onClose, onChanged }: Props) {
+export function ManageScreen({ programs, plans: initialPlans, onClose, onChanged }: Props) {
 	const [plans, setPlans] = useState<WorkoutPlan[]>(initialPlans);
+	const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 	const [selectedPlan, setSelectedPlan] = useState<WorkoutPlan | null>(null);
 
 	async function handleChanged() {
@@ -51,10 +54,18 @@ export function ManageScreen({ plans: initialPlans, onClose, onChanged }: Props)
 						onBack={() => setSelectedPlan(null)}
 						onChanged={handleChanged}
 					/>
-				) : (
+				) : selectedProgram ? (
 					<PlanList
-						plans={plans}
+						programId={selectedProgram.id}
+						plans={plans.filter((p) => p.programId === selectedProgram.id)}
+						onBack={() => setSelectedProgram(null)}
 						onSelectPlan={setSelectedPlan}
+						onChanged={handleChanged}
+					/>
+				) : (
+					<ProgramList
+						programs={programs}
+						onSelectProgram={setSelectedProgram}
 						onChanged={handleChanged}
 					/>
 				)}

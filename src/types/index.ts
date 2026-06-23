@@ -10,9 +10,17 @@ export interface Exercise {
 	description?: string;
 }
 
+export interface Program {
+	id: number;
+	userId: string;
+	name: string;
+	description?: string;
+}
+
 export interface WorkoutPlan {
 	id: number;
 	userId: string;
+	programId: number;
 	name: string;
 	suggestedDay: DayKey;
 	title: string;

@@ -10,6 +10,25 @@ export async function getPlansForUser(): Promise<WorkoutPlan[]> {
 	return (data ?? []).map((r) => ({
 		id: r.id as number,
 		userId: r.user_id as string,
+		programId: r.program_id as number,
+		name: r.name as string,
+		suggestedDay: r.suggested_day as WorkoutPlan["suggestedDay"],
+		title: r.title as string,
+		extra: r.extra as string | undefined,
+	}));
+}
+
+export async function getPlansForProgram(programId: number): Promise<WorkoutPlan[]> {
+	const { data, error } = await supabase
+		.from("workout_plans")
+		.select("*")
+		.eq("program_id", programId)
+		.order("sort_order");
+	if (error) throw error;
+	return (data ?? []).map((r) => ({
+		id: r.id as number,
+		userId: r.user_id as string,
+		programId: r.program_id as number,
 		name: r.name as string,
 		suggestedDay: r.suggested_day as WorkoutPlan["suggestedDay"],
 		title: r.title as string,

@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { getPlanExercises, getPlansForUser } from "../lib/queries/plans";
+import { getUserPrograms } from "../lib/queries/manage";
 import { getSessionForDate } from "../lib/queries/sessions";
 import {
 	DAY_ORDER,
 	type DayKey,
 	JS_DAY_TO_KEY,
 	type PlanExercise,
+	type Program,
 	type WorkoutPlan,
 } from "../types";
 
 function getTargetDateStr(dayKey: DayKey): string {
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
-	const currentDayIdx = today.getDay(); // 0 = Dom, 1 = Seg, ...
+	const currentDayIdx = today.getDay();
 	const targetDayIdx = DAY_ORDER.indexOf(dayKey);
 
 	const targetDate = new Date(today);
@@ -31,6 +33,8 @@ export function todayStr(): string {
 const exercisesCache = new Map<number, PlanExercise[]>();
 
 export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
+	const [programs, setPrograms] = useState<Program[]>([]);
+	const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null);
 	const [plans, setPlans] = useState<WorkoutPlan[]>([]);
 	const [selectedDay, setSelectedDay] = useState<DayKey>(todayKey());
 	const [overridePlanId, setOverridePlanId] = useState<number | null>(null);
@@ -55,14 +59,24 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 
 	useEffect(() => {
 		exercisesCache.clear();
+		getUserPrograms().then((p) => {
+			setPrograms(p);
+			if (p.length > 0 && selectedProgramId === null) {
+				setSelectedProgramId(p[0].id);
+			}
+		});
 		getPlansForUser().then(setPlans);
 	}, [userId, refreshTrigger]);
+
+	const programPlans = selectedProgramId
+		? plans.filter((p) => p.programId === selectedProgramId)
+		: plans;
 
 	const activePlan = resolvingOverride
 		? null
 		: overridePlanId
-			? plans.find((p) => p.id === overridePlanId)
-			: plans.find((p) => p.suggestedDay === selectedDay);
+			? programPlans.find((p) => p.id === overridePlanId)
+			: programPlans.find((p) => p.suggestedDay === selectedDay);
 
 	useEffect(() => {
 		if (!activePlan) {
@@ -114,7 +128,11 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 	}, [userId, selectedDay, refreshTrigger]);
 
 	return {
-		plans,
+		programs,
+		selectedProgramId,
+		setSelectedProgramId,
+		plans: programPlans,
+		allPlans: plans,
 		selectedDay,
 		setSelectedDay,
 		activePlan,

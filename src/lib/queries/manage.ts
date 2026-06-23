@@ -1,5 +1,62 @@
 import { supabase } from "../supabase";
-import type { WorkoutPlan } from "../../types";
+import type { Program, WorkoutPlan } from "../../types";
+
+// --- Programs ---
+
+export async function getUserPrograms(): Promise<Program[]> {
+	const { data, error } = await supabase
+		.from("programs")
+		.select("*")
+		.order("sort_order");
+	if (error) throw error;
+	return (data ?? []).map((r) => ({
+		id: r.id as number,
+		userId: r.user_id as string,
+		name: r.name as string,
+		description: r.description as string | undefined,
+	}));
+}
+
+export async function createProgram(
+	name: string,
+	description?: string,
+): Promise<Program> {
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+	if (!user) throw new Error("Not authenticated");
+	const { data, error } = await supabase
+		.from("programs")
+		.insert({ user_id: user.id, name: name.trim(), description })
+		.select()
+		.single();
+	if (error) throw error;
+	return {
+		id: data.id,
+		userId: data.user_id,
+		name: data.name,
+		description: data.description,
+	};
+}
+
+export async function updateProgram(
+	id: number,
+	updates: { name?: string; description?: string },
+): Promise<void> {
+	const payload: Record<string, unknown> = {};
+	if (updates.name !== undefined) payload.name = updates.name.trim();
+	if (updates.description !== undefined) payload.description = updates.description;
+	const { error } = await supabase
+		.from("programs")
+		.update(payload)
+		.eq("id", id);
+	if (error) throw error;
+}
+
+export async function deleteProgram(id: number): Promise<void> {
+	const { error } = await supabase.from("programs").delete().eq("id", id);
+	if (error) throw error;
+}
 
 // --- Exercises (user library) ---
 
@@ -55,6 +112,7 @@ export async function deleteExercise(id: number): Promise<void> {
 // --- Workout Plans ---
 
 export async function createPlan(
+	programId: number,
 	name: string,
 	suggestedDay: WorkoutPlan["suggestedDay"],
 	sortOrder: number,
@@ -67,6 +125,7 @@ export async function createPlan(
 		.from("workout_plans")
 		.insert({
 			user_id: user.id,
+			program_id: programId,
 			name: name.trim(),
 			title: name.trim(),
 			suggested_day: suggestedDay,
@@ -78,6 +137,7 @@ export async function createPlan(
 	return {
 		id: data.id,
 		userId: data.user_id,
+		programId: data.program_id,
 		name: data.name,
 		suggestedDay: data.suggested_day,
 		title: data.title,
