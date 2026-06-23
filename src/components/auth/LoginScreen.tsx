@@ -14,7 +14,7 @@ export function LoginScreen({ onSignInGoogle, onSignInApple }: Props) {
 					className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold mb-1"
 					style={{ color: "var(--accent-color)" }}
 				>
-					Iron Protocol
+					Forge
 				</div>
 				<h1
 					className="text-[2.2rem] font-bold tracking-[-0.02em] leading-tight"

@@ -40,7 +40,7 @@ export function App() {
 				user.name === "Andressa" ? "/icon.andressa.svg" : "/icon.svg",
 			);
 		document.title =
-			user.name === "Andressa" ? "Protocolo Gostosa 2.0" : "Iron Protocol";
+			user.name === "Andressa" ? "Protocolo Gostosa 2.0" : "Forge";
 	}, [user]);
 
 	if (loading)

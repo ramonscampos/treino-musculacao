@@ -1,6 +1,6 @@
 {
-	"name": "Iron Protocol",
-	"short_name": "Iron",
+	"name": "Forge",
+	"short_name": "Forge",
 	"description": "Rastreador de treinos de musculação",
 	"start_url": "./index.html",
 	"display": "standalone",

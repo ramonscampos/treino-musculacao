@@ -207,7 +207,7 @@ export function WorkoutView({ user }: Props) {
 	}
 
 	const brandName =
-		user.name === "Andressa" ? "Protocolo Gostosa 2.0" : "Iron Protocol";
+		user.name === "Andressa" ? "Protocolo Gostosa 2.0" : "Forge";
 	const headerName =
 		user.name === "Andressa" ? "Treino do Mozão" : "Meu Treino";
 
