@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { db } from "../../lib/db";
 import {
 	deleteSession,
 	getSessionsInRange,
 	upsertSession,
 } from "../../lib/queries/sessions";
+import { supabase } from "../../lib/supabase";
 import type { WorkoutSession } from "../../types";
 import { EvolutionChart } from "./EvolutionChart";
 import { MonthCalendar } from "./MonthCalendar";
 
 interface Props {
-	userId: number;
+	userId: string;
 	onClose: () => void;
 	onSessionsChanged?: () => void;
 }
@@ -95,16 +95,36 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 	}, [userId, from, to]);
 
 	useEffect(() => {
-		db.execute({
-			sql: `SELECT e.id, e.name FROM exercises e
-            JOIN load_logs ll ON ll.exercise_id = e.id AND ll.user_id = ?
-            GROUP BY e.id HAVING COUNT(*) >= 2`,
-			args: [userId],
-		}).then(({ rows }) =>
+		async function load() {
+			const { data: logs, error } = await supabase
+				.from("load_logs")
+				.select("exercise_id")
+				.eq("user_id", userId);
+			if (error) return;
+			const counts = new Map<number, number>();
+			for (const row of logs ?? []) {
+				const id = row.exercise_id as number;
+				counts.set(id, (counts.get(id) ?? 0) + 1);
+			}
+			const eligible = Array.from(counts.entries())
+				.filter(([, c]) => c >= 2)
+				.map(([id]) => id);
+			if (eligible.length === 0) {
+				setExercises([]);
+				return;
+			}
+			const { data: exData } = await supabase
+				.from("exercises")
+				.select("id, name")
+				.in("id", eligible);
 			setExercises(
-				rows.map((r) => ({ id: r.id as number, name: r.name as string })),
-			),
-		);
+				(exData ?? []).map((r) => ({
+					id: r.id as number,
+					name: r.name as string,
+				})),
+			);
+		}
+		load();
 	}, [userId]);
 
 	// Fetch ALL sessions for streak/total

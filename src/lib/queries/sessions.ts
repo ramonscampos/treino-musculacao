@@ -1,59 +1,68 @@
 import type { WorkoutSession } from "../../types";
-import { db } from "../db";
+import { supabase } from "../supabase";
 
 export async function getSessionForDate(
-	userId: number,
+	_userId: string,
 	date: string,
 ): Promise<WorkoutSession | null> {
-	const { rows } = await db.execute({
-		sql: "SELECT * FROM workout_sessions WHERE user_id = ? AND performed_on = ?",
-		args: [userId, date],
-	});
-	if (!rows[0]) return null;
-	const r = rows[0];
+	const { data, error } = await supabase
+		.from("workout_sessions")
+		.select("*")
+		.eq("performed_on", date)
+		.maybeSingle();
+	if (error) throw error;
+	if (!data) return null;
 	return {
-		id: r.id as number,
-		userId: r.user_id as number,
-		planId: r.plan_id as number,
-		performedOn: r.performed_on as string,
+		id: data.id as number,
+		userId: data.user_id as string,
+		planId: data.plan_id as number,
+		performedOn: data.performed_on as string,
 	};
 }
 
 export async function upsertSession(
-	userId: number,
+	_userId: string,
 	planId: number,
 	date: string,
 ): Promise<void> {
-	await db.execute({
-		sql: `INSERT INTO workout_sessions (user_id, plan_id, performed_on) VALUES (?, ?, ?)
-          ON CONFLICT (user_id, performed_on) DO UPDATE SET plan_id = excluded.plan_id`,
-		args: [userId, planId, date],
-	});
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+	if (!user) throw new Error("Not authenticated");
+	const { error } = await supabase.from("workout_sessions").upsert(
+		{ user_id: user.id, plan_id: planId, performed_on: date },
+		{ onConflict: "user_id,performed_on" },
+	);
+	if (error) throw error;
 }
 
 export async function getSessionsInRange(
-	userId: number,
+	_userId: string,
 	from: string,
 	to: string,
 ): Promise<WorkoutSession[]> {
-	const { rows } = await db.execute({
-		sql: "SELECT * FROM workout_sessions WHERE user_id = ? AND performed_on BETWEEN ? AND ? ORDER BY performed_on",
-		args: [userId, from, to],
-	});
-	return rows.map((r) => ({
+	const { data, error } = await supabase
+		.from("workout_sessions")
+		.select("*")
+		.gte("performed_on", from)
+		.lte("performed_on", to)
+		.order("performed_on");
+	if (error) throw error;
+	return (data ?? []).map((r) => ({
 		id: r.id as number,
-		userId: r.user_id as number,
+		userId: r.user_id as string,
 		planId: r.plan_id as number,
 		performedOn: r.performed_on as string,
 	}));
 }
 
 export async function deleteSession(
-	userId: number,
+	_userId: string,
 	date: string,
 ): Promise<void> {
-	await db.execute({
-		sql: "DELETE FROM workout_sessions WHERE user_id = ? AND performed_on = ?",
-		args: [userId, date],
-	});
+	const { error } = await supabase
+		.from("workout_sessions")
+		.delete()
+		.eq("performed_on", date);
+	if (error) throw error;
 }

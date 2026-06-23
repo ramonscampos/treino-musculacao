@@ -1,6 +1,7 @@
 export interface User {
-	id: number;
+	id: string;
 	name: string;
+	theme?: string;
 }
 
 export interface Exercise {
@@ -11,7 +12,7 @@ export interface Exercise {
 
 export interface WorkoutPlan {
 	id: number;
-	userId: number;
+	userId: string;
 	name: string;
 	suggestedDay: DayKey;
 	title: string;
@@ -38,14 +39,14 @@ export interface PlanExercise {
 
 export interface WorkoutSession {
 	id: number;
-	userId: number;
+	userId: string;
 	planId: number;
 	performedOn: string;
 }
 
 export interface LoadLog {
 	id: number;
-	userId: number;
+	userId: string;
 	exerciseId: number;
 	loggedAt: string;
 	sets: LoadLogSet[];

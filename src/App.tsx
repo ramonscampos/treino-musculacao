@@ -1,15 +1,16 @@
 import { useEffect } from "react";
-import { UserSelector } from "./components/UserSelector";
+import { LoginScreen } from "./components/auth/LoginScreen";
 import { WorkoutView } from "./components/WorkoutView/WorkoutView";
-import { useUser } from "./hooks/useUser";
+import { useAuth } from "./hooks/useAuth";
 import { USER_THEMES } from "./types";
 
 export function App() {
-	const { user, users, loading, selectUser } = useUser();
+	const { user, loading, signInWithGoogle, signInWithApple } = useAuth();
 
 	useEffect(() => {
 		if (!user) return;
-		const theme = USER_THEMES[user.name];
+		// Theme: check user.theme, fall back to name-based lookup
+		const theme = USER_THEMES[user.name] ?? USER_THEMES["Ramon"];
 		if (!theme) return;
 		const root = document.documentElement;
 		root.style.setProperty("--accent-color", theme.accentColor);
@@ -43,9 +44,8 @@ export function App() {
 	}, [user]);
 
 	if (loading)
-		return (
-			<div className="min-h-dvh" style={{ background: "var(--bg-color)" }} />
-		);
-	if (!user) return <UserSelector users={users} onSelect={selectUser} />;
+		return <div className="min-h-dvh" style={{ background: "var(--bg-color)" }} />;
+	if (!user)
+		return <LoginScreen onSignInGoogle={signInWithGoogle} onSignInApple={signInWithApple} />;
 	return <WorkoutView user={user} />;
 }

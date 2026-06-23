@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { getLastLoad, getLoadForDate, upsertLoad } from "../lib/queries/loads";
 import { todayStr } from "./useWorkoutPlan";
 
-export function useLoadLogs(userId: number) {
+export function useLoadLogs(userId: string) {
 	const [saving, setSaving] = useState(false);
 
 	const saveLoad = useCallback(

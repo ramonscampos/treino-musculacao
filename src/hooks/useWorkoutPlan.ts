@@ -30,7 +30,7 @@ export function todayStr(): string {
 
 const exercisesCache = new Map<number, PlanExercise[]>();
 
-export function useWorkoutPlan(userId: number, refreshTrigger?: number) {
+export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 	const [plans, setPlans] = useState<WorkoutPlan[]>([]);
 	const [selectedDay, setSelectedDay] = useState<DayKey>(todayKey());
 	const [overridePlanId, setOverridePlanId] = useState<number | null>(null);
@@ -54,8 +54,9 @@ export function useWorkoutPlan(userId: number, refreshTrigger?: number) {
 	}
 
 	useEffect(() => {
-		getPlansForUser(userId).then(setPlans);
-	}, [userId]);
+		exercisesCache.clear();
+		getPlansForUser().then(setPlans);
+	}, [userId, refreshTrigger]);
 
 	const activePlan = resolvingOverride
 		? null

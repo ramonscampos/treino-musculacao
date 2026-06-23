@@ -3,7 +3,7 @@ import { getAllLoadsForExercise } from "../../lib/queries/loads";
 import type { LoadLog } from "../../types";
 
 interface Props {
-	userId: number;
+	userId: string;
 	exerciseId: number;
 	exerciseName: string;
 }
