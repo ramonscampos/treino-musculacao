@@ -12,9 +12,23 @@
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL DEFAULT '',
-  theme TEXT NOT NULL DEFAULT 'default',
+  theme_color TEXT NOT NULL DEFAULT 'green',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Migração: Caso a tabela profiles já exista e ainda tenha a coluna antiga 'theme'
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='profiles' AND column_name='theme'
+  ) THEN
+    ALTER TABLE profiles RENAME COLUMN theme TO theme_color;
+    ALTER TABLE profiles ALTER COLUMN theme_color SET DEFAULT 'green';
+    UPDATE profiles SET theme_color = 'green' WHERE theme_color = 'default';
+  END IF;
+END $$;
+
 
 -- Programas de treino (ex: Plano de Hipertrofia)
 CREATE TABLE IF NOT EXISTS programs (

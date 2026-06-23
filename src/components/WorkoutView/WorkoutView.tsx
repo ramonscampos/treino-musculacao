@@ -49,6 +49,7 @@ function SkeletonCard() {
 
 interface Props {
 	user: User;
+	updateThemeColor: (color: string) => Promise<void>;
 }
 
 function getTargetDate(dayKey: DayKey): string {
@@ -110,7 +111,7 @@ function calcStreak(
 	return totalStreak;
 }
 
-export function WorkoutView({ user }: Props) {
+export function WorkoutView({ user, updateThemeColor }: Props) {
 	const userId = user.id;
 	const [refreshTrigger, setRefreshTrigger] = useState(0);
 	const triggerRefresh = useCallback(() => {
@@ -207,9 +208,9 @@ export function WorkoutView({ user }: Props) {
 	}
 
 	const brandName =
-		user.name === "Andressa" ? "Protocolo Gostosa 2.0" : "Forge";
+		user.name === "Andressa" ? "Protocolo Gostosa 2.0" : "Iron Protocol";
 	const headerName =
-		user.name === "Andressa" ? "Treino do Mozão" : "Meu Treino";
+		user.name === "Andressa" ? "Treino do Mozão" : user.name;
 
 	return (
 		<div
@@ -218,19 +219,41 @@ export function WorkoutView({ user }: Props) {
 		>
 			{/* Header */}
 			<header className="flex items-center justify-between px-4 sm:px-6 pt-[calc(1.5rem+var(--safe-top))] pb-2 mb-4">
-				<div>
-					<div
-						className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold"
-						style={{ color: "var(--accent-color)" }}
-					>
-						{brandName}
+				<div className="flex items-center gap-3 min-w-0">
+					{user.avatarUrl ? (
+						<img
+							src={user.avatarUrl}
+							alt={user.name}
+							className="w-11 h-11 rounded-full object-cover border shrink-0"
+							style={{ borderColor: "var(--accent-mute)" }}
+						/>
+					) : (
+						<div
+							className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[1.1rem] border shrink-0"
+							style={{
+								borderColor: "var(--accent-mute)",
+								background: "var(--accent-soft)",
+								color: "var(--accent-color)",
+								fontFamily: "Outfit",
+							}}
+						>
+							{user.name.charAt(0).toUpperCase()}
+						</div>
+					)}
+					<div className="min-w-0">
+						<div
+							className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold truncate"
+							style={{ color: "var(--accent-color)" }}
+						>
+							{brandName}
+						</div>
+						<h1
+							className="text-[1.5rem] sm:text-[1.75rem] font-bold tracking-[-0.02em] leading-tight truncate"
+							style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
+						>
+							{headerName}
+						</h1>
 					</div>
-					<h1
-						className="text-[1.75rem] font-bold tracking-[-0.02em] leading-tight"
-						style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
-					>
-						{headerName}
-					</h1>
 				</div>
 				<div className="flex items-center gap-3">
 					<button
@@ -573,6 +596,8 @@ export function WorkoutView({ user }: Props) {
 			)}
 			{manageOpen && (
 				<ManageScreen
+					user={user}
+					updateThemeColor={updateThemeColor}
 					programs={programs}
 					plans={plans}
 					onClose={() => setManageOpen(false)}

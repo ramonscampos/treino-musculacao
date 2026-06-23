@@ -1,9 +1,10 @@
 interface Props {
 	onSignInGoogle: () => Promise<void>;
 	onSignInApple: () => Promise<void>;
+	error?: string | null;
 }
 
-export function LoginScreen({ onSignInGoogle, onSignInApple }: Props) {
+export function LoginScreen({ onSignInGoogle, onSignInApple, error }: Props) {
 	return (
 		<div
 			className="min-h-dvh flex flex-col items-center justify-center px-6 gap-10"
@@ -14,7 +15,7 @@ export function LoginScreen({ onSignInGoogle, onSignInApple }: Props) {
 					className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold mb-1"
 					style={{ color: "var(--accent-color)" }}
 				>
-					Forge
+					Iron Protocol
 				</div>
 				<h1
 					className="text-[2.2rem] font-bold tracking-[-0.02em] leading-tight"
@@ -29,6 +30,18 @@ export function LoginScreen({ onSignInGoogle, onSignInApple }: Props) {
 			</div>
 
 			<div className="flex flex-col gap-3 w-full max-w-sm">
+				{error && (
+					<div
+						className="text-sm px-4 py-3 rounded-xl text-center"
+						style={{
+							background: "rgba(239,68,68,0.1)",
+							color: "#ef4444",
+							border: "1px solid rgba(239,68,68,0.2)",
+						}}
+					>
+						{error}
+					</div>
+				)}
 				<button
 					type="button"
 					onClick={onSignInGoogle}

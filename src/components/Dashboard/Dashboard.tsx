@@ -541,7 +541,7 @@ export function Dashboard({ userId, onClose, onSessionsChanged }: Props) {
 					className="mt-4 text-center text-[0.7rem] opacity-50"
 					style={{ color: "var(--text-muted)" }}
 				>
-					FORGE v2.0
+					IRON PROTOCOL v2.0
 				</p>
 			</div>
 		</div>
