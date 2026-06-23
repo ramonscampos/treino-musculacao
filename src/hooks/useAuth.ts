@@ -9,11 +9,28 @@ export function useAuth() {
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			setSession(session);
-			if (session) setUser(mapUser(session));
+		async function init() {
+			// Supabase v2 handles hash tokens automatically in getSession,
+			// but onAuthStateChange may not fire on initial load. We poll once
+			// after a short delay to catch any session established by the OAuth
+			// redirect callback that may have raced with our first getSession call.
+			const { data } = await supabase.auth.getSession();
+			if (data.session) {
+				setSession(data.session);
+				setUser(mapUser(data.session));
+				setLoading(false);
+				return;
+			}
+			// If no session yet, wait a tick for the hash parser to finish
+			await new Promise((r) => setTimeout(r, 300));
+			const { data: retry } = await supabase.auth.getSession();
+			if (retry.session) {
+				setSession(retry.session);
+				setUser(mapUser(retry.session));
+			}
 			setLoading(false);
-		});
+		}
+		init();
 
 		const {
 			data: { subscription },
