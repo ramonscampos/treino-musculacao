@@ -106,35 +106,43 @@ ALTER TABLE load_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE load_log_sets ENABLE ROW LEVEL SECURITY;
 
 -- profiles
-CREATE POLICY IF NOT EXISTS "own profile" ON profiles
+DROP POLICY IF EXISTS "own profile" ON profiles;
+CREATE POLICY "own profile" ON profiles
   FOR ALL USING (id = auth.uid()) WITH CHECK (id = auth.uid());
 
 -- programs
-CREATE POLICY IF NOT EXISTS "own programs" ON programs
+DROP POLICY IF EXISTS "own programs" ON programs;
+CREATE POLICY "own programs" ON programs
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- exercises
-CREATE POLICY IF NOT EXISTS "own exercises" ON exercises
+DROP POLICY IF EXISTS "own exercises" ON exercises;
+CREATE POLICY "own exercises" ON exercises
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- workout_plans
-CREATE POLICY IF NOT EXISTS "own plans" ON workout_plans
+DROP POLICY IF EXISTS "own plans" ON workout_plans;
+CREATE POLICY "own plans" ON workout_plans
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- plan_exercises
-CREATE POLICY IF NOT EXISTS "own plan exercises" ON plan_exercises
+DROP POLICY IF EXISTS "own plan exercises" ON plan_exercises;
+CREATE POLICY "own plan exercises" ON plan_exercises
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- workout_sessions
-CREATE POLICY IF NOT EXISTS "own sessions" ON workout_sessions
+DROP POLICY IF EXISTS "own sessions" ON workout_sessions;
+CREATE POLICY "own sessions" ON workout_sessions
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- load_logs
-CREATE POLICY IF NOT EXISTS "own load logs" ON load_logs
+DROP POLICY IF EXISTS "own load logs" ON load_logs;
+CREATE POLICY "own load logs" ON load_logs
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- load_log_sets (via join com load_logs)
-CREATE POLICY IF NOT EXISTS "own load sets" ON load_log_sets FOR ALL
+DROP POLICY IF EXISTS "own load sets" ON load_log_sets;
+CREATE POLICY "own load sets" ON load_log_sets FOR ALL
   USING (EXISTS (
     SELECT 1 FROM load_logs
     WHERE load_logs.id = log_id AND load_logs.user_id = auth.uid()
