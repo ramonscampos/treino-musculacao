@@ -267,7 +267,7 @@ export function Dashboard({
 
 	if (loading) {
 		return (
-			<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-4 animate-pulse">
+			<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-0 animate-pulse">
 				<div>
 					<div className="h-8 bg-white/10 rounded-md w-32 animate-pulse" />
 				</div>
@@ -383,7 +383,7 @@ export function Dashboard({
 	}
 
 	return (
-		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-4 animate-fade-in">
+		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-0 animate-fade-in">
 			<div>
 				<h2
 					className="text-[1.75rem] font-bold tracking-[-0.02em]"
@@ -610,15 +610,6 @@ export function Dashboard({
 					onToggleDate={toggleDateStatus}
 				/>
 			</div>
-
-
-
-			<p
-				className="mt-4 text-center text-[0.7rem] opacity-50"
-				style={{ color: "var(--text-muted)" }}
-			>
-				IRON PROTOCOL v2.0
-			</p>
 		</div>
 	);
 }

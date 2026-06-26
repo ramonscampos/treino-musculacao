@@ -72,16 +72,16 @@ export function Modal({
 	if (variant === "fullscreen") {
 		return (
 			<div
-				className="fixed inset-0 z-50 overflow-y-auto mx-auto max-w-150 transition-transform duration-420"
+				className="fixed inset-0 z-50 flex flex-col mx-auto max-w-150 transition-transform duration-420"
 				style={{
 					background: "var(--bg-color)",
 					transform: active ? "translateY(0)" : "translateY(100%)",
 					transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
 				}}
 			>
-				<div className="max-w-150 mx-auto p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))]">
+				<div className="flex-1 flex flex-col p-6 pt-[calc(1.5rem+var(--safe-top))] pb-0 overflow-hidden">
 					{/* Header */}
-					<div className="flex items-center justify-between mb-8">
+					<div className="flex items-center justify-between mb-8 shrink-0">
 						<h2
 							className="text-[1.75rem] font-bold tracking-[-0.02em]"
 							style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
@@ -96,14 +96,28 @@ export function Modal({
 								background: "var(--card-bg)",
 								border: "1px solid var(--card-border)",
 								color: "var(--text-primary)",
-								fontSize: "1.1rem",
 							}}
 							aria-label="Fechar"
 						>
-							✕
+							<svg
+								aria-hidden={true}
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2.5"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<line x1="18" y1="6" x2="6" y2="18" />
+								<line x1="6" y1="6" x2="18" y2="18" />
+							</svg>
 						</button>
 					</div>
-					{children}
+					<div className="flex-1 flex flex-col overflow-hidden">
+						{children}
+					</div>
 				</div>
 			</div>
 		);

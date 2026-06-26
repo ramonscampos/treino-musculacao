@@ -158,7 +158,7 @@ export function ManageScreen({
 				: "Treinos";
 
 	return (
-		<div className="flex flex-col min-h-dvh">
+		<div className="flex flex-col flex-1">
 			{/* Unified header */}
 			<header className="flex items-center gap-3 px-5 pt-[calc(1.5rem+var(--safe-top))] pb-4">
 				{view !== "programs" && (
@@ -256,7 +256,7 @@ export function ManageScreen({
 			{/* Animated content — key causes remount + fade-in on view change */}
 			<div
 				key={view}
-				className="flex flex-col gap-4 px-5 pb-[calc(2rem+var(--safe-bottom))] animate-fade-in"
+				className="flex flex-col gap-4 px-5 pb-4 animate-fade-in"
 			>
 				{loading ? (
 					view === "plans" ? (

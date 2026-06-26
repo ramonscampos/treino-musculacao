@@ -123,7 +123,7 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 				variant="fullscreen"
 				title="Gerenciar Exercícios"
 			>
-				<div className="flex flex-col gap-4 h-full max-h-[70vh]">
+				<div className="flex flex-col gap-4 flex-1 overflow-hidden">
 					{/* Barra de Pesquisa */}
 					<div className="relative">
 						<input
@@ -156,7 +156,7 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 					</div>
 
 					{/* Lista de Exercícios */}
-					<div className="flex flex-col gap-2.5 overflow-y-auto pr-1 flex-1">
+					<div className="flex flex-col gap-2.5 overflow-y-auto pr-1 flex-1 pb-[calc(2.5rem+var(--safe-bottom))]">
 						{loading ? (
 							<div className="text-center py-8 text-[0.85rem] opacity-60">
 								Carregando exercícios...

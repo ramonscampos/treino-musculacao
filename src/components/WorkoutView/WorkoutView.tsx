@@ -226,7 +226,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 
 	return (
 		<div
-			className="flex flex-col min-h-dvh mx-auto max-w-150 pb-28"
+			className="flex flex-col min-h-dvh mx-auto max-w-150 pb-20"
 			style={{ background: "var(--bg-color)" }}
 		>
 			{activeTab === "home" && (

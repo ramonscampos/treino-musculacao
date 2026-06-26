@@ -18,7 +18,7 @@ export function ConfigScreen({
 	const [showManageExercises, setShowManageExercises] = useState(false);
 
 	return (
-		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))] animate-fade-in">
+		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-0 animate-fade-in">
 			<div>
 				<h2
 					className="text-[1.75rem] font-bold tracking-[-0.02em]"
@@ -206,12 +206,7 @@ export function ConfigScreen({
 				Sair da Conta
 			</button>
 
-			<p
-				className="text-center text-[0.7rem] opacity-50 mt-4"
-				style={{ color: "var(--text-muted)" }}
-			>
-				IRON PROTOCOL v2.0
-			</p>
+
 
 			<ManageExercisesModal
 				isOpen={showManageExercises}
