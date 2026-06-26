@@ -117,7 +117,7 @@ export function MonthCalendar({
 							{/* Missed ring */}
 							{isMissed && (
 								<span
-									className="absolute inset-2.5 rounded-full z-1"
+									className="absolute inset-1.5 rounded-full z-1"
 									style={{ border: "1.5px solid rgba(255, 78, 78, 0.4)" }}
 								/>
 							)}

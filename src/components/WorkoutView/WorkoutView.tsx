@@ -11,6 +11,7 @@ import {
 	DAY_ORDER,
 	type DayKey,
 	formatLocalDate,
+	JS_DAY_TO_KEY,
 	type PlanExercise,
 	type User,
 	type WorkoutSession,
@@ -69,44 +70,52 @@ function getTargetDate(dayKey: DayKey): string {
 }
 
 
-function calcStreak(sessions: WorkoutSession[], restDays: number): number {
+function calcStreak(
+	sessions: WorkoutSession[],
+	workoutDayCodes: string[] = [],
+): number {
 	if (!sessions.length) return 0;
-	const getWeekId = (dateStr: string) => {
-		const d = new Date(`${dateStr}T00:00:00`);
-		const day = d.getDay();
-		const sun = new Date(d);
-		sun.setDate(d.getDate() - day);
-		return formatLocalDate(sun);
-	};
-	const weeks: Record<string, Set<string>> = {};
-	sessions.forEach((s) => {
-		const wid = getWeekId(s.performedOn);
-		if (!weeks[wid]) weeks[wid] = new Set();
-		weeks[wid].add(s.performedOn);
-	});
-	const sortedWeekIds = Object.keys(weeks).sort().reverse();
+
+	const performedDates = new Set(sessions.map((s) => s.performedOn));
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
-	const day = today.getDay();
-	const sunday = new Date(today);
-	sunday.setDate(today.getDate() - day);
-	const currentWeekId = formatLocalDate(sunday);
 
-	const plannedPerWeek = Math.max(7 - restDays, 1);
-	let totalStreak = 0;
-	for (const wid of sortedWeekIds) {
-		const sessionsCount = weeks[wid].size;
-		if (wid === currentWeekId) {
-			totalStreak += sessionsCount;
+	let oldestDateStr = sessions[0].performedOn;
+	for (const s of sessions) {
+		if (s.performedOn < oldestDateStr) {
+			oldestDateStr = s.performedOn;
+		}
+	}
+	const oldestDate = new Date(`${oldestDateStr}T00:00:00`);
+	oldestDate.setHours(0, 0, 0, 0);
+
+	const plannedDays = workoutDayCodes.length > 0
+		? workoutDayCodes
+		: ["SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+
+	let streak = 0;
+	const currentDate = new Date(today);
+
+	while (currentDate >= oldestDate) {
+		const dateStr = formatLocalDate(currentDate);
+		const dayOfWeekKey = JS_DAY_TO_KEY[currentDate.getDay()];
+		const isPlanned = plannedDays.includes(dayOfWeekKey);
+		const workedOut = performedDates.has(dateStr);
+
+		const isToday = currentDate.getTime() === today.getTime();
+
+		if (workedOut) {
+			streak++;
 		} else {
-			if (sessionsCount >= plannedPerWeek) {
-				totalStreak += plannedPerWeek;
-			} else {
+			if (!isToday && isPlanned) {
 				break;
 			}
 		}
+
+		currentDate.setDate(currentDate.getDate() - 1);
 	}
-	return totalStreak;
+
+	return streak;
 }
 
 export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
@@ -177,9 +186,9 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 
 	const loadStreak = useCallback(() => {
 		getSessionsInRange(userId, "2000-01-01", "2099-12-31").then((all) => {
-			setStreak(calcStreak(all, activeProgram?.restDays ?? 0));
+			setStreak(calcStreak(all, plans.map((p) => p.suggestedDay)));
 		});
-	}, [userId, activeProgram]);
+	}, [userId, plans]);
 
 	useEffect(() => {
 		loadStreak();

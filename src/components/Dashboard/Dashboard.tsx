@@ -35,50 +35,57 @@ const PT_MONTHS = [
 	"Dezembro",
 ];
 
-function calcStreak(sessions: WorkoutSession[], restDays: number): number {
+function calcStreak(
+	sessions: WorkoutSession[],
+	workoutDayCodes: string[] = [],
+): number {
 	if (!sessions.length) return 0;
-	const getWeekId = (dateStr: string) => {
-		const d = new Date(`${dateStr}T00:00:00`);
-		const day = d.getDay();
-		const sun = new Date(d);
-		sun.setDate(d.getDate() - day);
-		return formatLocalDate(sun);
-	};
-	const weeks: Record<string, Set<string>> = {};
-	sessions.forEach((s) => {
-		const wid = getWeekId(s.performedOn);
-		if (!weeks[wid]) weeks[wid] = new Set();
-		weeks[wid].add(s.performedOn);
-	});
-	const sortedWeekIds = Object.keys(weeks).sort().reverse();
+
+	const performedDates = new Set(sessions.map((s) => s.performedOn));
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
-	const day = today.getDay();
-	const sunday = new Date(today);
-	sunday.setDate(today.getDate() - day);
-	const currentWeekId = formatLocalDate(sunday);
 
-	const plannedPerWeek = Math.max(7 - restDays, 1);
-	let totalStreak = 0;
-	for (const wid of sortedWeekIds) {
-		const sessionsCount = weeks[wid].size;
-		if (wid === currentWeekId) {
-			totalStreak += sessionsCount;
+	let oldestDateStr = sessions[0].performedOn;
+	for (const s of sessions) {
+		if (s.performedOn < oldestDateStr) {
+			oldestDateStr = s.performedOn;
+		}
+	}
+	const oldestDate = new Date(`${oldestDateStr}T00:00:00`);
+	oldestDate.setHours(0, 0, 0, 0);
+
+	const plannedDays = workoutDayCodes.length > 0
+		? workoutDayCodes
+		: ["SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+
+	let streak = 0;
+	const currentDate = new Date(today);
+
+	while (currentDate >= oldestDate) {
+		const dateStr = formatLocalDate(currentDate);
+		const dayOfWeekKey = JS_DAY_TO_KEY[currentDate.getDay()];
+		const isPlanned = plannedDays.includes(dayOfWeekKey);
+		const workedOut = performedDates.has(dateStr);
+
+		const isToday = currentDate.getTime() === today.getTime();
+
+		if (workedOut) {
+			streak++;
 		} else {
-			if (sessionsCount >= plannedPerWeek) {
-				totalStreak += plannedPerWeek;
-			} else {
+			if (!isToday && isPlanned) {
 				break;
 			}
 		}
+
+		currentDate.setDate(currentDate.getDate() - 1);
 	}
-	return totalStreak;
+
+	return streak;
 }
 
 export function Dashboard({
 	userId,
 	onSessionsChanged,
-	restDays,
 	workoutDayCodes,
 }: Props) {
 	const [sessions, setSessions] = useState<WorkoutSession[]>([]);
@@ -92,8 +99,9 @@ export function Dashboard({
 	const [loading, setLoading] = useState(true);
 
 	const pad = (n: number) => String(n).padStart(2, "0");
+	const lastDay = new Date(year, month + 1, 0).getDate();
 	const from = `${year}-${pad(month + 1)}-01`;
-	const to = `${year}-${pad(month + 1)}-31`;
+	const to = `${year}-${pad(month + 1)}-${pad(lastDay)}`;
 
 	const [prevParams, setPrevParams] = useState({ userId, from, to });
 	if (userId !== prevParams.userId || from !== prevParams.from || to !== prevParams.to) {
@@ -156,8 +164,8 @@ export function Dashboard({
 	}, [userId, from, to]);
 
 	const streak = useMemo(
-		() => calcStreak(allSessions, restDays ?? 0),
-		[allSessions, restDays],
+		() => calcStreak(allSessions, workoutDayCodes),
+		[allSessions, workoutDayCodes],
 	);
 
 	const monthCount = useMemo(() => {
@@ -255,29 +263,11 @@ export function Dashboard({
 		[userId, allSessions, from, to, onSessionsChanged],
 	);
 
-	function handleExport() {
-		const data = { history: allSessions, loads: {} as Record<string, unknown> };
-		navigator.clipboard.writeText(JSON.stringify(data)).then(() => {
-			alert("Backup copiado!");
-		});
-	}
 
-	function handleImport() {
-		const str = prompt("Cole aqui o código de backup:");
-		if (!str) return;
-		try {
-			const data = JSON.parse(str);
-			if (data.history && Array.isArray(data.history)) {
-				alert("Importação requer script de migração. Use yarn migrate.");
-			}
-		} catch {
-			alert("Código inválido.");
-		}
-	}
 
 	if (loading) {
 		return (
-			<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))] animate-pulse">
+			<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-4 animate-pulse">
 				<div>
 					<div className="h-8 bg-white/10 rounded-md w-32 animate-pulse" />
 				</div>
@@ -393,7 +383,7 @@ export function Dashboard({
 	}
 
 	return (
-		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))] animate-fade-in">
+		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-4 animate-fade-in">
 			<div>
 				<h2
 					className="text-[1.75rem] font-bold tracking-[-0.02em]"
@@ -621,33 +611,7 @@ export function Dashboard({
 				/>
 			</div>
 
-			{/* Footer Actions */}
-			<div className="flex gap-2 justify-center mt-8">
-				<button
-					type="button"
-					onClick={handleExport}
-					className="py-2 px-4 rounded-lg text-[0.75rem] transition-all active:border-(--accent-color) active:text-(--accent-color)"
-					style={{
-						background: "transparent",
-						border: "1px solid var(--card-border)",
-						color: "var(--text-secondary)",
-					}}
-				>
-					Exportar Backup
-				</button>
-				<button
-					type="button"
-					onClick={handleImport}
-					className="py-2 px-4 rounded-lg text-[0.75rem] transition-all active:border-(--accent-color) active:text-(--accent-color)"
-					style={{
-						background: "transparent",
-						border: "1px solid var(--card-border)",
-						color: "var(--text-secondary)",
-					}}
-				>
-					Importar Backup
-				</button>
-			</div>
+
 
 			<p
 				className="mt-4 text-center text-[0.7rem] opacity-50"
