@@ -18,7 +18,7 @@ export function ConfigScreen({
 	const [showManageExercises, setShowManageExercises] = useState(false);
 
 	return (
-		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-0 animate-fade-in">
+		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-10 animate-fade-in">
 			<div>
 				<h2
 					className="text-[1.75rem] font-bold tracking-[-0.02em]"
@@ -205,8 +205,6 @@ export function ConfigScreen({
 				</svg>
 				Sair da Conta
 			</button>
-
-
 
 			<ManageExercisesModal
 				isOpen={showManageExercises}

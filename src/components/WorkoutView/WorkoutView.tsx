@@ -313,7 +313,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 					)}
 
 					{/* Content */}
-					<main className="flex-1 px-4 sm:px-6 pb-0">
+					<main className="flex-1 px-4 sm:px-6 pb-10">
 						{exercisesLoading ? (
 							<div
 								className="animate-fade-in p-4 sm:p-6"

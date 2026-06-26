@@ -568,7 +568,7 @@ export function Dashboard({
 							</svg>
 						</button>
 						<span
-							className="text-[0.85rem] font-bold uppercase tracking-[0.1rem]"
+							className="text-[0.72rem] sm:text-[0.85rem] font-bold uppercase tracking-[0.08rem] sm:tracking-[0.1rem]"
 							style={{ color: "var(--text-primary)" }}
 						>
 							{PT_MONTHS[month]} {year}
