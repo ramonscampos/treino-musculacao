@@ -227,9 +227,8 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 		setWeightsMap((prev) => ({ ...prev, [exerciseId]: weights }));
 	}
 
-	const brandName =
-		user.name === "Andressa" ? "Protocolo Gostosa 2.0" : "Iron Protocol";
-	const headerName = user.name === "Andressa" ? "Treino do Mozão" : user.name;
+	const brandName = "Iron Protocol";
+	const headerName = user.name;
 
 	const showLayout =
 		initialLoading || (programs.length > 0 && allPlans.length > 0);
