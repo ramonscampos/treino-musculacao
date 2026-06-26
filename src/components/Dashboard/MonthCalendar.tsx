@@ -1,4 +1,4 @@
-import type { WorkoutSession } from "../../types";
+import { formatLocalDate, type WorkoutSession } from "../../types";
 
 const WEEK_DAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
@@ -22,7 +22,7 @@ export function MonthCalendar({
 	const doneDates = new Set(sessions.map((s) => s.performedOn));
 	const firstDay = new Date(year, month, 1).getDay();
 	const daysInMonth = new Date(year, month + 1, 0).getDate();
-	const todayStr = new Date().toISOString().slice(0, 10);
+	const todayStr = formatLocalDate(new Date());
 	const actualToday = new Date();
 
 	const cells: (number | null)[] = [

@@ -18,7 +18,9 @@ export async function getPlansForUser(): Promise<WorkoutPlan[]> {
 	}));
 }
 
-export async function getPlansForProgram(programId: number): Promise<WorkoutPlan[]> {
+export async function getPlansForProgram(
+	programId: number,
+): Promise<WorkoutPlan[]> {
 	const { data, error } = await supabase
 		.from("workout_plans")
 		.select("*")
@@ -36,7 +38,9 @@ export async function getPlansForProgram(programId: number): Promise<WorkoutPlan
 	}));
 }
 
-export async function getPlanExercises(planId: number): Promise<PlanExercise[]> {
+export async function getPlanExercises(
+	planId: number,
+): Promise<PlanExercise[]> {
 	const { data, error } = await supabase
 		.from("plan_exercises")
 		.select(`*, exercises(name, description)`)

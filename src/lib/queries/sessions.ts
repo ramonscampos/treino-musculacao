@@ -29,10 +29,12 @@ export async function upsertSession(
 		data: { user },
 	} = await supabase.auth.getUser();
 	if (!user) throw new Error("Not authenticated");
-	const { error } = await supabase.from("workout_sessions").upsert(
-		{ user_id: user.id, plan_id: planId, performed_on: date },
-		{ onConflict: "user_id,performed_on" },
-	);
+	const { error } = await supabase
+		.from("workout_sessions")
+		.upsert(
+			{ user_id: user.id, plan_id: planId, performed_on: date },
+			{ onConflict: "user_id,performed_on" },
+		);
 	if (error) throw error;
 }
 

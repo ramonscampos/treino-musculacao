@@ -1,6 +1,5 @@
-import { BottomSheet } from "../ui/BottomSheet";
 import type { WorkoutPlan } from "../../types";
-import { DAY_ORDER } from "../../types";
+import { BottomSheet } from "../ui/BottomSheet";
 
 const DAY_PT: Record<string, string> = {
 	SEG: "Seg",
@@ -27,9 +26,7 @@ export function WorkoutSwitcher({
 	activePlanId,
 	onSelect,
 }: Props) {
-	const sortedPlans = [...plans].sort(
-		(a, b) => DAY_ORDER.indexOf(a.suggestedDay) - DAY_ORDER.indexOf(b.suggestedDay),
-	);
+	const sortedPlans = plans;
 
 	return (
 		<BottomSheet
@@ -63,12 +60,14 @@ export function WorkoutSwitcher({
 										}
 							}
 						>
-							<span
-								className="text-xs block"
-								style={{ color: "var(--text-muted)" }}
-							>
-								{DAY_PT[plan.suggestedDay]}
-							</span>
+							{plan.suggestedDay !== "NONE" && DAY_PT[plan.suggestedDay] && (
+								<span
+									className="text-xs block"
+									style={{ color: "var(--text-muted)" }}
+								>
+									{DAY_PT[plan.suggestedDay]}
+								</span>
+							)}
 							<span className="font-medium">{plan.name}</span>
 						</button>
 					);

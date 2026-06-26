@@ -1,13 +1,19 @@
-import { useEffect, useState } from "react";
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
+import {
+	createProfile,
+	getProfile,
+	updateProfileColor,
+} from "../lib/queries/profiles";
 import { supabase } from "../lib/supabase";
 import type { User } from "../types";
-import { getProfile, createProfile, updateProfileColor } from "../lib/queries/profiles";
 
 async function fetchOrCreateProfile(sessionUser: SupabaseUser): Promise<User> {
 	const profile = await getProfile(sessionUser.id);
 	const meta = sessionUser.user_metadata;
-	const avatarUrl = (meta.avatar_url as string | undefined) ?? (meta.picture as string | undefined);
+	const avatarUrl =
+		(meta.avatar_url as string | undefined) ??
+		(meta.picture as string | undefined);
 	if (profile) {
 		return {
 			id: profile.id,
@@ -149,7 +155,10 @@ export function useAuth() {
 	};
 }
 
-function decodeOAuthError(description: string | null, code: string | null): string {
+function decodeOAuthError(
+	description: string | null,
+	code: string | null,
+): string {
 	if (description?.includes("Database error saving new user")) {
 		return "Erro no servidor ao criar usuário. O projeto pode estar indisponível.";
 	}

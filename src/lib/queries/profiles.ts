@@ -20,7 +20,11 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 	return data as Profile;
 }
 
-export async function createProfile(userId: string, name: string, themeColor = "green"): Promise<Profile> {
+export async function createProfile(
+	userId: string,
+	name: string,
+	themeColor = "green",
+): Promise<Profile> {
 	const { data, error } = await supabase
 		.from("profiles")
 		.insert({ id: userId, name, theme_color: themeColor })
@@ -34,7 +38,10 @@ export async function createProfile(userId: string, name: string, themeColor = "
 	return data as Profile;
 }
 
-export async function updateProfileColor(userId: string, color: string): Promise<void> {
+export async function updateProfileColor(
+	userId: string,
+	color: string,
+): Promise<void> {
 	const { error } = await supabase
 		.from("profiles")
 		.update({ theme_color: color })

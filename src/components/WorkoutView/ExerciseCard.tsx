@@ -4,6 +4,7 @@ interface Props {
 	exercise: PlanExercise;
 	lastWeights: number[];
 	onOpenLoad: () => void;
+	supersetTargetName?: string;
 }
 
 function formatRest(seconds?: number): string {
@@ -21,7 +22,12 @@ function formatWeights(weights: number[]): string {
 		: weights.map((w) => w || "—").join("/");
 }
 
-export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
+export function ExerciseCard({
+	exercise: ex,
+	lastWeights,
+	onOpenLoad,
+	supersetTargetName,
+}: Props) {
 	const hasLoad = lastWeights.length > 0 && lastWeights.some((w) => w > 0);
 	const cargaDisplay = hasLoad ? formatWeights(lastWeights) : null;
 
@@ -52,16 +58,24 @@ export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
 					style={{ fontFamily: "Outfit" }}
 				>
 					{ex.sets
-						? ex.repsMin && ex.repsMax
-							? ex.repsMin === ex.repsMax
-								? `${ex.sets}x${ex.repsMin}`
-								: `${ex.sets}x${ex.repsMin}-${ex.repsMax}`
-							: ex.repsMin
-								? `${ex.sets}x${ex.repsMin}`
-								: `${ex.sets} séries`
-						: ""}
+						? ex.extra
+							? `${ex.sets}x ${ex.extra}`
+							: ex.repsMin && ex.repsMax
+								? ex.repsMin === ex.repsMax
+									? `${ex.sets}x${ex.repsMin}`
+									: `${ex.sets}x${ex.repsMin}-${ex.repsMax}`
+								: ex.repsMin
+									? `${ex.sets}x${ex.repsMin}`
+									: `${ex.sets} séries`
+						: ex.extra || ""}
 				</span>
 			</div>
+
+			{ex.note && (
+				<span className="italic text-[0.8rem] text-(--text-muted) leading-tight block mt-0.5">
+					{ex.note}
+				</span>
+			)}
 
 			<div className="flex items-center gap-[0.6rem] flex-wrap">
 				{ex.restSeconds && (
@@ -74,9 +88,9 @@ export function ExerciseCard({ exercise: ex, lastWeights, onOpenLoad }: Props) {
 						🎯 {ex.muscleFocus}
 					</span>
 				)}
-				{ex.note && (
-					<span className="italic text-[0.75rem] text-(--text-muted)">
-						{ex.note}
+				{supersetTargetName && (
+					<span className="py-[0.2rem] px-[0.6rem] rounded-lg text-[0.75rem] bg-[rgba(247,144,9,0.12)] text-orange-400 font-semibold border border-orange-500/20">
+						🔗 Bi-set com: {supersetTargetName}
 					</span>
 				)}
 			</div>

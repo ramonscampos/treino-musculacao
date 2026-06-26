@@ -10,10 +10,36 @@ interface Props {
 
 export function EvolutionChart({ userId, exerciseId, exerciseName }: Props) {
 	const [logs, setLogs] = useState<LoadLog[]>([]);
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		getAllLoadsForExercise(userId, exerciseId).then(setLogs);
+		getAllLoadsForExercise(userId, exerciseId)
+			.then(setLogs)
+			.finally(() => setLoading(false));
 	}, [userId, exerciseId]);
+
+	if (loading) {
+		const placeholderBars = [0, 1, 2, 3, 4];
+		return (
+			<div className="mb-6 animate-pulse">
+				<p className="text-[0.9rem] font-semibold text-center mb-3 h-4 bg-white/5 rounded w-28 mx-auto" />
+				<div
+					className="flex items-end justify-center gap-[0.6rem] pb-1"
+					style={{ height: 54 }}
+				>
+					{placeholderBars.map((barId) => (
+						<div
+							key={barId}
+							className="flex flex-col items-center gap-[0.2rem] flex-1 max-w-8"
+						>
+							<div className="w-full rounded-t-xs bg-white/5 h-8 animate-pulse" />
+							<div className="h-3 bg-white/5 rounded w-8 animate-pulse" />
+						</div>
+					))}
+				</div>
+			</div>
+		);
+	}
 
 	if (logs.length < 2) return null;
 

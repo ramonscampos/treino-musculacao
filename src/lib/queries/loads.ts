@@ -71,22 +71,19 @@ export async function upsertLoad(
 	await supabase.from("load_log_sets").delete().eq("log_id", log.id);
 
 	if (weights.length > 0) {
-		const { error: setsError } = await supabase
-			.from("load_log_sets")
-			.insert(
-				weights.map((weight, i) => ({
-					log_id: log.id,
-					set_number: i + 1,
-					weight,
-				})),
-			);
+		const { error: setsError } = await supabase.from("load_log_sets").insert(
+			weights.map((weight, i) => ({
+				log_id: log.id,
+				set_number: i + 1,
+				weight,
+			})),
+		);
 		if (setsError) throw setsError;
 	}
 }
 
 function mapLog(data: Record<string, unknown>): LoadLog {
-	const sets =
-		(data.load_log_sets as Array<Record<string, unknown>>) ?? [];
+	const sets = (data.load_log_sets as Array<Record<string, unknown>>) ?? [];
 	return {
 		id: data.id as number,
 		userId: data.user_id as string,

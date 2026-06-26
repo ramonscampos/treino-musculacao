@@ -1,164 +1,360 @@
-import { useState } from "react";
 import {
-	createPlan,
-	deletePlan,
-} from "../../lib/queries/manage";
-import type { DayKey, WorkoutPlan } from "../../types";
+	closestCenter,
+	DndContext,
+	type DragEndEvent,
+	DragOverlay,
+	type DragStartEvent,
+	PointerSensor,
+	TouchSensor,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
+import {
+	SortableContext,
+	useSortable,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useEffect, useState } from "react";
+import { useSortableList } from "../../hooks/useSortableList";
+import { deletePlan, reorderPlans } from "../../lib/queries/manage";
+import type { WorkoutPlan } from "../../types";
 import { DAY_LABELS } from "../../types";
+import { ConfirmModal } from "../ui/ConfirmModal";
+import { CreatePlanModal } from "../WorkoutView/CreatePlanModal";
 
 interface Props {
 	programId: number;
 	plans: WorkoutPlan[];
-	onBack: () => void;
+	addTrigger: number;
 	onSelectPlan: (plan: WorkoutPlan) => void;
 	onChanged: () => void;
 }
 
-const DAYS: DayKey[] = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"];
+// --- Grip icon ---
+function GripHandle(props: React.HTMLAttributes<HTMLDivElement>) {
+	return (
+		<div
+			{...props}
+			className="flex items-center justify-center px-1 self-stretch cursor-grab active:cursor-grabbing touch-none shrink-0"
+			style={{ color: "var(--text-muted)" }}
+			aria-label="Arrastar para reordenar"
+		>
+			<svg
+				width="14"
+				height="14"
+				viewBox="0 0 24 24"
+				fill="currentColor"
+				aria-hidden="true"
+			>
+				<circle cx="9" cy="5" r="1.5" />
+				<circle cx="15" cy="5" r="1.5" />
+				<circle cx="9" cy="12" r="1.5" />
+				<circle cx="15" cy="12" r="1.5" />
+				<circle cx="9" cy="19" r="1.5" />
+				<circle cx="15" cy="19" r="1.5" />
+			</svg>
+		</div>
+	);
+}
 
-export function PlanList({ programId, plans, onBack, onSelectPlan, onChanged }: Props) {
+// --- Single sortable card ---
+interface CardProps {
+	plan: WorkoutPlan;
+	index: number;
+	isDragging?: boolean;
+	onSelect: (plan: WorkoutPlan) => void;
+	onDelete: (plan: WorkoutPlan) => void;
+}
+
+function PlanCard({ plan, index, isDragging, onSelect, onDelete }: CardProps) {
+	const hasDay = plan.suggestedDay !== "NONE";
+	return (
+		<div
+			className="group relative flex items-center rounded-2xl cursor-pointer transition-colors overflow-hidden"
+			style={{
+				background: isDragging
+					? "rgba(255,255,255,0.07)"
+					: "rgba(255,255,255,0.03)",
+				border: isDragging
+					? "1px solid var(--accent-mute)"
+					: "1px solid rgba(255,255,255,0.07)",
+				opacity: isDragging ? 0.5 : 1,
+			}}
+		>
+			{/* Day strip */}
+			<div
+				className="flex flex-col items-center justify-center w-14 self-stretch shrink-0"
+				style={{
+					background: "var(--accent-soft)",
+					borderRight: "1px solid var(--accent-mute)",
+				}}
+			>
+				<span
+					className="text-[0.55rem] font-bold uppercase tracking-widest"
+					style={{ color: "var(--accent-color)", opacity: hasDay ? 0.7 : 0.3 }}
+				>
+					{hasDay ? plan.suggestedDay : "—"}
+				</span>
+				<span
+					className="text-[1.15rem] font-black leading-none mt-0.5"
+					style={{ color: "var(--accent-color)", fontFamily: "Outfit" }}
+				>
+					{String(index + 1).padStart(2, "0")}
+				</span>
+			</div>
+
+			{/* Clickable content area */}
+			{/* biome-ignore lint/a11y/useSemanticElements: interactive div inside sortable */}
+			<div
+				className="flex-1 min-w-0 py-3 pl-3"
+				onClick={() => onSelect(plan)}
+				onKeyDown={(e) => e.key === "Enter" && onSelect(plan)}
+				role="button"
+				tabIndex={0}
+			>
+				<span
+					className="text-[0.92rem] font-semibold block truncate"
+					style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
+				>
+					{plan.name}
+				</span>
+				<span
+					className="text-[0.75rem]"
+					style={{ color: "var(--text-secondary)" }}
+				>
+					{DAY_LABELS[plan.suggestedDay]}
+				</span>
+			</div>
+
+			{/* Actions */}
+			<div
+				className="flex items-center gap-1 pr-2 shrink-0"
+				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
+			>
+				<button
+					type="button"
+					onClick={(e) => {
+						e.stopPropagation();
+						onDelete(plan);
+					}}
+					className="p-2 rounded-lg cursor-pointer transition-all active:opacity-60 opacity-0 group-hover:opacity-100"
+					style={{ color: "rgba(255,80,80,0.7)" }}
+					aria-label="Excluir treino"
+				>
+					<svg
+						aria-hidden="true"
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						strokeLinecap="round"
+					>
+						<path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2" />
+					</svg>
+				</button>
+				<svg
+					aria-hidden="true"
+					width="15"
+					height="15"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					style={{ color: "var(--text-muted)" }}
+				>
+					<path d="m9 18 6-6-6-6" />
+				</svg>
+			</div>
+		</div>
+	);
+}
+
+// --- Sortable wrapper ---
+function SortablePlanCard(props: Omit<CardProps, "isDragging">) {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: props.plan.id });
+
+	const style: React.CSSProperties = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+	};
+
+	return (
+		<div ref={setNodeRef} style={style} className="flex items-stretch gap-1">
+			<GripHandle {...attributes} {...listeners} />
+			<div className="flex-1 min-w-0">
+				<PlanCard {...props} isDragging={isDragging} />
+			</div>
+		</div>
+	);
+}
+
+// --- Main component ---
+export function PlanList({
+	programId,
+	plans: initialPlans,
+	addTrigger,
+	onSelectPlan,
+	onChanged,
+}: Props) {
 	const [creating, setCreating] = useState(false);
-	const [newName, setNewName] = useState("");
-	const [newDay, setNewDay] = useState<DayKey>("SEG");
+	const [deletingPlan, setDeletingPlan] = useState<WorkoutPlan | null>(null);
+	const [activeId, setActiveId] = useState<number | null>(null);
 
-	async function handleCreate() {
-		if (!newName.trim()) return;
-		await createPlan(programId, newName.trim(), newDay, plans.length);
-		setNewName("");
-		setCreating(false);
-		onChanged();
+	const {
+		items: plans,
+		handleDragEnd,
+		syncItems,
+	} = useSortableList(initialPlans, reorderPlans);
+
+	// Sync when prop changes (after add/delete)
+	useEffect(() => {
+		syncItems(initialPlans);
+	}, [initialPlans, syncItems]);
+
+	const [prevAddTrigger, setPrevAddTrigger] = useState(addTrigger);
+	if (addTrigger !== prevAddTrigger) {
+		setPrevAddTrigger(addTrigger);
+		if (addTrigger > 0) {
+			setCreating(true);
+		}
 	}
 
-	async function handleDelete(plan: WorkoutPlan) {
-		if (!confirm(`Excluir "${plan.name}"? Isso remove todos os exercícios do plano.`)) return;
-		await deletePlan(plan.id);
-		onChanged();
+	const sensors = useSensors(
+		useSensor(PointerSensor, {
+			activationConstraint: { distance: 6 },
+		}),
+		useSensor(TouchSensor, {
+			activationConstraint: { delay: 150, tolerance: 8 },
+		}),
+	);
+
+	function onDragStart(event: DragStartEvent) {
+		setActiveId(event.active.id as number);
 	}
+
+	function onDragEnd(event: DragEndEvent) {
+		const { active, over } = event;
+		setActiveId(null);
+		if (over && active.id !== over.id) {
+			handleDragEnd(active.id as number, over.id as number);
+		}
+	}
+
+	const activePlan = activeId ? plans.find((p) => p.id === activeId) : null;
+	const activeIndex = activePlan ? plans.indexOf(activePlan) : -1;
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex items-center gap-3">
-				<button
-					type="button"
-					onClick={onBack}
-					className="p-2 rounded-xl cursor-pointer transition-all active:opacity-60"
-					style={{ color: "var(--text-secondary)" }}
-					aria-label="Voltar"
-				>
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-						<path d="m15 18-6-6 6-6" />
-					</svg>
-				</button>
-				<h2 className="text-[1rem] font-bold" style={{ color: "var(--text-primary)" }}>
-					Meus Treinos
-				</h2>
-				{!creating && (
-					<button
-						type="button"
-						onClick={() => setCreating(true)}
-						className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.82rem] font-semibold cursor-pointer transition-all active:opacity-70"
-						style={{ background: "var(--accent-color)", color: "#000" }}
-					>
-						<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-							<path d="M12 5v14M5 12h14" />
-						</svg>
-						Novo treino
-					</button>
-				)}
-			</div>
-
-			{creating && (
-				<div
-					className="flex flex-col gap-3 p-3 rounded-2xl"
-					style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-				>
-					<input
-						autoFocus
-						type="text"
-						placeholder="Nome do treino (ex: Peito + Tríceps)"
-						value={newName}
-						onChange={(e) => setNewName(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-						className="px-3 py-2 rounded-xl text-[0.9rem] outline-none w-full"
-						style={{
-							background: "rgba(255,255,255,0.05)",
-							border: "1px solid var(--accent-mute)",
-							color: "var(--text-primary)",
-						}}
-					/>
-					<div className="flex gap-2 flex-wrap">
-						{DAYS.map((d) => (
-							<button
-								key={d}
-								type="button"
-								onClick={() => setNewDay(d)}
-								className="px-3 py-1 rounded-lg text-[0.8rem] font-medium cursor-pointer"
-								style={{
-									background: newDay === d ? "var(--accent-color)" : "rgba(255,255,255,0.05)",
-									color: newDay === d ? "#000" : "var(--text-secondary)",
-								}}
-							>
-								{DAY_LABELS[d]}
-							</button>
-						))}
-					</div>
-					<div className="flex gap-2">
-						<button type="button" onClick={handleCreate}
-							className="px-4 py-2 rounded-xl text-[0.85rem] font-semibold cursor-pointer"
-							style={{ background: "var(--accent-color)", color: "#000" }}>
-							Criar
-						</button>
-						<button type="button" onClick={() => setCreating(false)}
-							className="px-4 py-2 rounded-xl text-[0.85rem] cursor-pointer"
-							style={{ color: "var(--text-secondary)" }}>
-							Cancelar
-						</button>
-					</div>
-				</div>
-			)}
+			<CreatePlanModal
+				isOpen={creating}
+				onClose={() => setCreating(false)}
+				programId={programId}
+				plansLength={plans.length}
+				existingDays={plans.map((p) => p.suggestedDay)}
+				onChanged={onChanged}
+			/>
 
 			{plans.length === 0 && !creating && (
-				<p className="text-center py-8 text-[0.9rem]" style={{ color: "var(--text-secondary)" }}>
-					Nenhum treino criado ainda.
-				</p>
-			)}
-
-			{plans.map((plan) => (
 				<div
-					key={plan.id}
-					className="flex items-center justify-between gap-3 p-3 rounded-2xl cursor-pointer transition-all active:opacity-70"
-					style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
-					onClick={() => onSelectPlan(plan)}
-					role="button"
-					tabIndex={0}
-					onKeyDown={(e) => e.key === "Enter" && onSelectPlan(plan)}
+					className="flex flex-col items-center justify-center p-8 rounded-2xl border text-center gap-4 mt-2"
+					style={{
+						background: "var(--card-bg)",
+						borderColor: "var(--card-border)",
+						backdropFilter: "blur(6px)",
+					}}
 				>
-					<div className="flex flex-col gap-0.5 min-w-0">
-						<span className="text-[0.9rem] font-semibold truncate" style={{ color: "var(--text-primary)" }}>
-							{plan.name}
-						</span>
-						<span className="text-[0.78rem]" style={{ color: "var(--text-secondary)" }}>
-							{DAY_LABELS[plan.suggestedDay]}
-						</span>
+					<div
+						className="w-12 h-12 rounded-xl flex items-center justify-center text-[1.5rem]"
+						style={{
+							background: "var(--accent-soft)",
+							border: "1px dashed var(--accent-mute)",
+							color: "var(--accent-color)",
+						}}
+					>
+						🏋️
 					</div>
-					<div className="flex items-center gap-2 shrink-0">
-						<button
-							type="button"
-							onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}
-							className="p-2 rounded-lg cursor-pointer transition-all active:opacity-60"
-							style={{ color: "rgba(255,80,80,0.6)" }}
-							aria-label="Excluir treino"
+					<div className="flex flex-col gap-1 max-w-xs">
+						<span
+							className="text-[0.95rem] font-bold"
+							style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
 						>
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-								<path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2" />
-							</svg>
-						</button>
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ color: "var(--text-secondary)" }}>
-							<path d="m9 18 6-6-6-6" />
-						</svg>
+							Nenhum treino cadastrado
+						</span>
+						<span
+							className="text-[0.78rem]"
+							style={{ color: "var(--text-secondary)" }}
+						>
+							Toque no botão "+ Novo treino" para cadastrar os dias da sua
+							divisão de treinos.
+						</span>
 					</div>
 				</div>
-			))}
+			)}
+
+			<DndContext
+				sensors={sensors}
+				collisionDetection={closestCenter}
+				onDragStart={onDragStart}
+				onDragEnd={onDragEnd}
+			>
+				<SortableContext
+					items={plans.map((p) => p.id)}
+					strategy={verticalListSortingStrategy}
+				>
+					<div className="flex flex-col gap-3">
+						{plans.map((plan, index) => (
+							<SortablePlanCard
+								key={plan.id}
+								plan={plan}
+								index={index}
+								onSelect={onSelectPlan}
+								onDelete={setDeletingPlan}
+							/>
+						))}
+					</div>
+				</SortableContext>
+
+				<DragOverlay>
+					{activePlan ? (
+						<div className="flex items-stretch gap-1 opacity-95 shadow-2xl">
+							<GripHandle />
+							<div className="flex-1 min-w-0">
+								<PlanCard
+									plan={activePlan}
+									index={activeIndex}
+									onSelect={() => {}}
+									onDelete={() => {}}
+								/>
+							</div>
+						</div>
+					) : null}
+				</DragOverlay>
+			</DndContext>
+
+			<ConfirmModal
+				isOpen={deletingPlan !== null}
+				title="Excluir Treino?"
+				description={`Tem certeza que deseja excluir o treino "${deletingPlan?.name}"? Isso removerá permanentemente todos os exercícios vinculados a ele.`}
+				onConfirm={async () => {
+					if (!deletingPlan) return;
+					await deletePlan(deletingPlan.id);
+					setDeletingPlan(null);
+					onChanged();
+				}}
+				onCancel={() => setDeletingPlan(null)}
+			/>
 		</div>
 	);
 }

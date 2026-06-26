@@ -5,12 +5,20 @@ import { useAuth } from "./hooks/useAuth";
 import { COLOR_PRESETS } from "./types";
 
 export function App() {
-	const { user, loading, error, signInWithGoogle, signInWithApple, updateThemeColor } = useAuth();
+	const {
+		user,
+		loading,
+		error,
+		signInWithGoogle,
+		signInWithApple,
+		updateThemeColor,
+		signOut,
+	} = useAuth();
 
 	useEffect(() => {
 		if (!user) return;
 		// Theme: lookup selected color preset (fallback to green)
-		const preset = COLOR_PRESETS[user.themeColor] ?? COLOR_PRESETS["green"];
+		const preset = COLOR_PRESETS[user.themeColor] ?? COLOR_PRESETS.green;
 		const root = document.documentElement;
 		root.style.setProperty("--accent-color", preset.accentColor);
 		root.style.setProperty("--accent-glow", preset.accentGlow);
@@ -37,7 +45,9 @@ export function App() {
 		const touchIcon = document.getElementById("apple-touch-icon");
 		if (touchIcon) touchIcon.setAttribute("href", svgUrl);
 
-		const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null;
+		const favicon = document.querySelector(
+			'link[rel="icon"]',
+		) as HTMLLinkElement | null;
 		if (favicon) favicon.setAttribute("href", svgUrl);
 
 		// Generate dynamic manifest JSON with the color-matched PWA icon
@@ -58,9 +68,9 @@ export function App() {
 					src: svgDataUri,
 					sizes: "any",
 					type: "image/svg+xml",
-					purpose: "any maskable"
-				}
-			]
+					purpose: "any maskable",
+				},
+			],
 		};
 		const manifestDataUri = `data:application/json;utf8,${encodeURIComponent(JSON.stringify(manifestObject))}`;
 
@@ -83,8 +93,22 @@ export function App() {
 	}, [user]);
 
 	if (loading)
-		return <div className="min-h-dvh" style={{ background: "var(--bg-color)" }} />;
+		return (
+			<div className="min-h-dvh" style={{ background: "var(--bg-color)" }} />
+		);
 	if (!user)
-		return <LoginScreen onSignInGoogle={signInWithGoogle} onSignInApple={signInWithApple} error={error} />;
-	return <WorkoutView user={user} updateThemeColor={updateThemeColor} />;
+		return (
+			<LoginScreen
+				onSignInGoogle={signInWithGoogle}
+				onSignInApple={signInWithApple}
+				error={error}
+			/>
+		);
+	return (
+		<WorkoutView
+			user={user}
+			updateThemeColor={updateThemeColor}
+			signOut={signOut}
+		/>
+	);
 }

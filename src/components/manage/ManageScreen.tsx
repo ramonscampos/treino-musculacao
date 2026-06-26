@@ -1,107 +1,298 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getPlansForUser } from "../../lib/queries/plans";
-import type { Program, User, WorkoutPlan } from "../../types";
+import type { Program, WorkoutPlan } from "../../types";
+import { DAY_LABELS } from "../../types";
+import { EditPlanModal } from "../WorkoutView/EditPlanModal";
 import { PlanEditor } from "./PlanEditor";
 import { PlanList } from "./PlanList";
 import { ProgramList } from "./ProgramList";
 
 interface Props {
-	user: User;
-	updateThemeColor: (color: string) => Promise<void>;
 	programs: Program[];
+	activeProgramId: number | null;
+	setActiveProgramId: (id: number) => void;
 	plans: WorkoutPlan[];
-	onClose: () => void;
-	onChanged: () => void;
+	onChanged: (newProgramId?: number) => void;
+	loading?: boolean;
+}
+
+type View = "programs" | "plans" | "editor";
+
+function ProgramListSkeleton() {
+	const items = [1, 2, 3];
+	return (
+		<div className="flex flex-col gap-3 animate-pulse">
+			{items.map((id) => (
+				<div
+					key={id}
+					className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border"
+					style={{
+						background: "rgba(255,255,255,0.03)",
+						borderColor: "rgba(255,255,255,0.08)",
+					}}
+				>
+					<div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 shrink-0" />
+					<div className="flex-1 min-w-0 flex flex-col gap-2">
+						<div className="h-4 bg-white/10 rounded w-1/3" />
+						<div className="h-3 bg-white/5 rounded w-1/2" />
+					</div>
+				</div>
+			))}
+		</div>
+	);
+}
+
+function PlanListSkeleton() {
+	const items = [1, 2, 3, 4];
+	return (
+		<div className="flex flex-col gap-3 animate-pulse">
+			{items.map((id) => (
+				<div
+					key={id}
+					className="flex items-center rounded-2xl overflow-hidden border"
+					style={{
+						background: "rgba(255,255,255,0.03)",
+						borderColor: "rgba(255,255,255,0.07)",
+					}}
+				>
+					<div
+						className="flex flex-col items-center justify-center w-14 py-4 shrink-0"
+						style={{
+							background: "rgba(255,255,255,0.02)",
+							borderRight: "1px solid rgba(255,255,255,0.07)",
+						}}
+					>
+						<div className="h-2.5 bg-white/10 rounded w-6 mb-1.5" />
+						<div className="h-4 bg-white/10 rounded w-5" />
+					</div>
+					<div className="flex-1 py-3 pl-3 flex flex-col gap-2">
+						<div className="h-4 bg-white/10 rounded w-1/2" />
+						<div className="h-3 bg-white/5 rounded w-1/4" />
+					</div>
+				</div>
+			))}
+		</div>
+	);
+}
+
+function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[0.82rem] font-bold cursor-pointer transition-all active:scale-[0.97] shrink-0"
+			style={{
+				background: "var(--accent-color)",
+				color: "#000",
+				fontFamily: "Outfit",
+			}}
+		>
+			<svg
+				aria-hidden="true"
+				width="13"
+				height="13"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth="3"
+				strokeLinecap="round"
+			>
+				<path d="M12 5v14M5 12h14" />
+			</svg>
+			{label}
+		</button>
+	);
 }
 
 export function ManageScreen({
-	user,
-	updateThemeColor,
 	programs,
+	activeProgramId,
+	setActiveProgramId,
 	plans: initialPlans,
-	onClose,
 	onChanged,
+	loading,
 }: Props) {
 	const [plans, setPlans] = useState<WorkoutPlan[]>(initialPlans);
 	const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 	const [selectedPlan, setSelectedPlan] = useState<WorkoutPlan | null>(null);
-	const [open, setOpen] = useState(false);
+	const [addTrigger, setAddTrigger] = useState(0);
+	const [showEditPlanModal, setShowEditPlanModal] = useState(false);
 
-	useEffect(() => {
-		const timer = setTimeout(() => setOpen(true), 0);
-		return () => clearTimeout(timer);
-	}, []);
+	const view: View = selectedPlan
+		? "editor"
+		: selectedProgram
+			? "plans"
+			: "programs";
 
-	async function handleChanged() {
+	async function handleChanged(newProgramId?: number) {
 		const updated = await getPlansForUser();
 		setPlans(updated);
-		onChanged();
+		if (selectedPlan) {
+			const found = updated.find((p) => p.id === selectedPlan.id);
+			if (found) setSelectedPlan(found);
+		}
+		onChanged(newProgramId);
 	}
 
-	function handleClose() {
-		setOpen(false);
-		setTimeout(onClose, 420);
+	function handleBack() {
+		if (view === "editor") {
+			setSelectedPlan(null);
+		} else if (view === "plans") {
+			setSelectedProgram(null);
+		}
 	}
+
+	const headerTitle =
+		view === "editor"
+			? (selectedPlan?.name ?? "Treino")
+			: view === "plans"
+				? (selectedProgram?.name ?? "Treinos")
+				: "Treinos";
 
 	return (
-		<div
-			className="fixed inset-0 z-50 overflow-y-auto mx-auto max-w-150 transition-transform duration-420"
-			style={{
-				background: "var(--bg-color)",
-				transform: open ? "translateY(0)" : "translateY(100%)",
-				transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-			}}
-		>
-			<div className="max-w-150 mx-auto p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))]">
-				{/* Header */}
-				<div className="flex items-center justify-between mb-8">
-					<h2
-						className="text-[1.75rem] font-bold tracking-[-0.02em]"
-						style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
-					>
-						Gerenciar
-					</h2>
+		<div className="flex flex-col min-h-dvh">
+			{/* Unified header */}
+			<header className="flex items-center gap-3 px-5 pt-[calc(1.5rem+var(--safe-top))] pb-4">
+				{view !== "programs" && (
 					<button
 						type="button"
-						onClick={handleClose}
-						className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:bg-[rgba(255,255,255,0.1)]"
-						style={{
-							background: "var(--card-bg)",
-							border: "1px solid var(--card-border)",
-							color: "var(--text-primary)",
-							fontSize: "1.1rem",
-						}}
-						aria-label="Fechar"
+						onClick={handleBack}
+						className="p-2 -ml-2 rounded-xl cursor-pointer transition-all active:opacity-60 shrink-0"
+						style={{ color: "var(--text-secondary)" }}
+						aria-label="Voltar"
 					>
-						✕
+						<svg
+							aria-hidden="true"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<path d="m15 18-6-6 6-6" />
+						</svg>
 					</button>
+				)}
+
+				<div className="flex flex-col min-w-0 flex-1">
+					{view === "programs" && (
+						<span
+							className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold"
+							style={{ color: "var(--accent-color)" }}
+						>
+							Gerenciar
+						</span>
+					)}
+					{view === "plans" && selectedProgram && (
+						<span
+							className="text-[0.72rem] uppercase tracking-[0.1rem] font-bold truncate"
+							style={{ color: "var(--text-muted)" }}
+						>
+							Treinos
+						</span>
+					)}
+					{view === "editor" && selectedPlan && (
+						<span
+							className="text-[0.72rem] uppercase tracking-[0.1rem] font-bold truncate"
+							style={{ color: "var(--accent-color)" }}
+						>
+							Treino · {DAY_LABELS[selectedPlan.suggestedDay]}
+						</span>
+					)}
+					<h2
+						className="text-[1.75rem] font-bold tracking-[-0.02em] leading-tight truncate"
+						style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
+					>
+						{headerTitle}
+					</h2>
 				</div>
 
-				{/* Content */}
-				{selectedPlan ? (
-					<PlanEditor
-						plan={selectedPlan}
-						onBack={() => setSelectedPlan(null)}
-						onChanged={handleChanged}
+				{view !== "editor" ? (
+					<AddButton
+						label={view === "plans" ? "Novo treino" : "Novo programa"}
+						onClick={() => setAddTrigger((n) => n + 1)}
 					/>
-				) : selectedProgram ? (
+				) : (
+					<button
+						type="button"
+						onClick={() => setShowEditPlanModal(true)}
+						className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[0.82rem] font-bold cursor-pointer transition-all active:scale-[0.97] shrink-0"
+						style={{
+							background: "rgba(255,255,255,0.05)",
+							border: "1px solid var(--card-border)",
+							color: "var(--text-secondary)",
+							fontFamily: "Outfit",
+						}}
+					>
+						<svg
+							aria-hidden="true"
+							width="13"
+							height="13"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+						</svg>
+						Editar
+					</button>
+				)}
+			</header>
+
+			{/* Animated content — key causes remount + fade-in on view change */}
+			<div
+				key={view}
+				className="flex flex-col gap-4 px-5 pb-[calc(2rem+var(--safe-bottom))] animate-fade-in"
+			>
+				{loading ? (
+					view === "plans" ? (
+						<PlanListSkeleton />
+					) : (
+						<ProgramListSkeleton />
+					)
+				) : view === "editor" && selectedPlan ? (
+					<PlanEditor plan={selectedPlan} onChanged={handleChanged} />
+				) : view === "plans" && selectedProgram ? (
 					<PlanList
 						programId={selectedProgram.id}
 						plans={plans.filter((p) => p.programId === selectedProgram.id)}
-						onBack={() => setSelectedProgram(null)}
+						addTrigger={addTrigger}
 						onSelectPlan={setSelectedPlan}
 						onChanged={handleChanged}
 					/>
 				) : (
 					<ProgramList
-						user={user}
-						updateThemeColor={updateThemeColor}
 						programs={programs}
+						activeProgramId={activeProgramId}
+						onSetActiveProgram={setActiveProgramId}
 						onSelectProgram={setSelectedProgram}
+						addTrigger={addTrigger}
 						onChanged={handleChanged}
 					/>
 				)}
 			</div>
+
+			{showEditPlanModal && selectedPlan && (
+				<EditPlanModal
+					isOpen={showEditPlanModal}
+					plan={selectedPlan}
+					existingDays={plans
+						.filter(
+							(p) =>
+								p.programId === selectedPlan.programId &&
+								p.id !== selectedPlan.id,
+						)
+						.map((p) => p.suggestedDay)}
+					onClose={() => setShowEditPlanModal(false)}
+					onChanged={handleChanged}
+				/>
+			)}
 		</div>
 	);
 }

@@ -29,6 +29,24 @@ BEGIN
   END IF;
 END $$;
 
+-- Migração: Ajustar programs.rest_days para ser do tipo INTEGER
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='programs' AND column_name='rest_days' AND data_type != 'integer'
+  ) THEN
+    ALTER TABLE programs DROP COLUMN rest_days;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='programs' AND column_name='rest_days'
+  ) THEN
+    ALTER TABLE programs ADD COLUMN rest_days INTEGER NOT NULL DEFAULT 0;
+  END IF;
+END $$;
+
 
 -- Programas de treino (ex: Plano de Hipertrofia)
 CREATE TABLE IF NOT EXISTS programs (
@@ -36,6 +54,7 @@ CREATE TABLE IF NOT EXISTS programs (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
+  rest_days INTEGER NOT NULL DEFAULT 0,
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

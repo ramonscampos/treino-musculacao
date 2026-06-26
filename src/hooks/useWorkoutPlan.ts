@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { getPlanExercises, getPlansForUser } from "../lib/queries/plans";
 import { getUserPrograms } from "../lib/queries/manage";
+import { getPlanExercises, getPlansForUser } from "../lib/queries/plans";
 import { getSessionForDate } from "../lib/queries/sessions";
 import {
 	DAY_ORDER,
 	type DayKey,
+	formatLocalDate,
 	JS_DAY_TO_KEY,
 	type PlanExercise,
 	type Program,
@@ -19,7 +20,7 @@ function getTargetDateStr(dayKey: DayKey): string {
 
 	const targetDate = new Date(today);
 	targetDate.setDate(today.getDate() - currentDayIdx + targetDayIdx);
-	return targetDate.toISOString().slice(0, 10);
+	return formatLocalDate(targetDate);
 }
 
 export function todayKey(): DayKey {
@@ -27,19 +28,22 @@ export function todayKey(): DayKey {
 }
 
 export function todayStr(): string {
-	return new Date().toISOString().slice(0, 10);
+	return formatLocalDate(new Date());
 }
 
 const exercisesCache = new Map<number, PlanExercise[]>();
 
 export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 	const [programs, setPrograms] = useState<Program[]>([]);
-	const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null);
+	const [selectedProgramId, setSelectedProgramId] = useState<number | null>(
+		null,
+	);
 	const [plans, setPlans] = useState<WorkoutPlan[]>([]);
 	const [selectedDay, setSelectedDay] = useState<DayKey>(todayKey());
 	const [overridePlanId, setOverridePlanId] = useState<number | null>(null);
 	const [exercises, setExercises] = useState<PlanExercise[]>([]);
-	const [loading, setLoading] = useState(true);
+	const [initialLoading, setInitialLoading] = useState(true);
+	const [exercisesLoading, setExercisesLoading] = useState(true);
 	const [resolvingOverride, setResolvingOverride] = useState(true);
 
 	const [prevSelectedDay, setPrevSelectedDay] = useState(selectedDay);
@@ -55,17 +59,28 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 		setPrevUserId(userId);
 		setPrevRefreshTrigger(refreshTrigger);
 		setResolvingOverride(true);
+		if (userId !== prevUserId || refreshTrigger !== prevRefreshTrigger) {
+			setInitialLoading(true);
+		}
 	}
 
 	useEffect(() => {
+		void userId;
+		void refreshTrigger;
+		let active = true;
 		exercisesCache.clear();
-		getUserPrograms().then((p) => {
+		Promise.all([getUserPrograms(), getPlansForUser()]).then(([p, pl]) => {
+			if (!active) return;
 			setPrograms(p);
-			if (p.length > 0 && selectedProgramId === null) {
-				setSelectedProgramId(p[0].id);
+			if (p.length > 0) {
+				setSelectedProgramId((prev) => prev ?? p[0].id);
 			}
+			setPlans(pl);
+			setInitialLoading(false);
 		});
-		getPlansForUser().then(setPlans);
+		return () => {
+			active = false;
+		};
 	}, [userId, refreshTrigger]);
 
 	const programPlans = selectedProgramId
@@ -82,7 +97,7 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 		if (!activePlan) {
 			const timer = setTimeout(() => {
 				setExercises([]);
-				setLoading(false);
+				setExercisesLoading(false);
 			}, 0);
 			return () => clearTimeout(timer);
 		}
@@ -90,14 +105,14 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 		if (exercisesCache.has(activePlan.id)) {
 			const timer = setTimeout(() => {
 				setExercises(exercisesCache.get(activePlan.id) || []);
-				setLoading(false);
+				setExercisesLoading(false);
 			}, 0);
 			return () => clearTimeout(timer);
 		}
 
 		let active = true;
 		const timer = setTimeout(() => {
-			if (active) setLoading(true);
+			if (active) setExercisesLoading(true);
 		}, 0);
 
 		getPlanExercises(activePlan.id).then((ex) => {
@@ -105,7 +120,7 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 			clearTimeout(timer);
 			exercisesCache.set(activePlan.id, ex);
 			setExercises(ex);
-			setLoading(false);
+			setExercisesLoading(false);
 		});
 
 		return () => {
@@ -139,6 +154,7 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 		overridePlanId,
 		setOverridePlanId,
 		exercises,
-		loading: loading || resolvingOverride,
+		initialLoading,
+		exercisesLoading: exercisesLoading || resolvingOverride,
 	};
 }
