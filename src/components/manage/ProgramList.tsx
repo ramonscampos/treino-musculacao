@@ -75,6 +75,7 @@ export function ProgramList({
 			{programs.map((p) => {
 				const isActive = p.id === activeProgramId;
 				return (
+					// biome-ignore lint/a11y/useSemanticElements: nested interactive buttons require a generic container
 					<div
 						key={p.id}
 						className="relative overflow-hidden rounded-2xl cursor-pointer transition-all active:scale-[0.99]"
@@ -120,6 +121,7 @@ export function ProgramList({
 							>
 								{isActive ? (
 									<svg
+										aria-hidden="true"
 										width="16"
 										height="16"
 										viewBox="0 0 24 24"
@@ -134,6 +136,7 @@ export function ProgramList({
 									</svg>
 								) : (
 									<svg
+										aria-hidden="true"
 										width="16"
 										height="16"
 										viewBox="0 0 24 24"
@@ -191,6 +194,7 @@ export function ProgramList({
 							</div>
 
 							{/* Actions */}
+							{/* biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper */}
 							<div
 								className="flex items-center gap-0.5 shrink-0"
 								onClick={(e) => e.stopPropagation()}

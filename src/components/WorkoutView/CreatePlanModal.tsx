@@ -38,6 +38,7 @@ export function CreatePlanModal({
 	const [newName, setNewName] = useState("");
 	const [newDay, setNewDay] = useState<DayKey>("NONE");
 	const [saving, setSaving] = useState(false);
+	const [isRestDay, setIsRestDay] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -46,20 +47,24 @@ export function CreatePlanModal({
 		if (!isOpen) {
 			setNewName("");
 			setNewDay("NONE");
+			setIsRestDay(false);
 		}
 	}
 
 	useEffect(() => {
 		if (isOpen) {
-			const timer = setTimeout(() => {
-				inputRef.current?.focus();
-			}, 320); // wait for slide-up animation
-			return () => clearTimeout(timer);
+			if (!isRestDay) {
+				const timer = setTimeout(() => {
+					inputRef.current?.focus();
+				}, 320); // wait for slide-up animation
+				return () => clearTimeout(timer);
+			}
 		}
-	}, [isOpen]);
+	}, [isOpen, isRestDay]);
 
 	async function handleCreate() {
-		if (!newName.trim()) return;
+		const targetName = isRestDay ? "Descanso" : newName.trim();
+		if (!targetName) return;
 		setSaving(true);
 		try {
 			let targetProgramId = programId;
@@ -76,7 +81,13 @@ export function CreatePlanModal({
 					targetProgramId = programs[0].id;
 				}
 			}
-			await createPlan(targetProgramId, newName.trim(), newDay, plansLength);
+			await createPlan(
+				targetProgramId,
+				targetName,
+				newDay,
+				plansLength,
+				isRestDay ? "descanso" : undefined,
+			);
 			onChanged();
 			onClose();
 		} catch (err) {
@@ -106,11 +117,12 @@ export function CreatePlanModal({
 						id="plan-name"
 						ref={inputRef}
 						type="text"
-						placeholder="ex: Peito + Tríceps, Costas, Inferiores..."
-						value={newName}
+						placeholder={isRestDay ? "Descanso" : "ex: Peito + Tríceps, Costas, Inferiores..."}
+						value={isRestDay ? "Descanso" : newName}
+						disabled={isRestDay}
 						onChange={(e) => setNewName(e.target.value)}
 						onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-						className="w-full py-[0.75rem] px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border"
+						className="w-full py-[0.75rem] px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border disabled:opacity-50 disabled:cursor-not-allowed"
 						style={{
 							background: "rgba(255,255,255,0.05)",
 							borderColor: "var(--card-border)",
@@ -125,6 +137,57 @@ export function CreatePlanModal({
 							e.currentTarget.style.background = "rgba(255,255,255,0.05)";
 						}}
 					/>
+				</div>
+
+				{/* Rest Day Toggle */}
+				<div
+					className="flex items-center gap-3 p-3.5 rounded-2xl border"
+					style={{
+						background: "rgba(255,255,255,0.02)",
+						borderColor: "var(--card-border)",
+					}}
+				>
+					<div className="flex-1 min-w-0">
+						<div
+							className="text-[0.88rem] font-bold"
+							style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
+						>
+							Dia de Descanso
+						</div>
+						<div
+							className="text-[0.72rem] leading-snug mt-0.5"
+							style={{ color: "var(--text-secondary)" }}
+						>
+							Marcar este dia como descanso oficial sem exercícios.
+						</div>
+					</div>
+					<button
+						type="button"
+						onClick={() => {
+							const next = !isRestDay;
+							setIsRestDay(next);
+							if (next) {
+								setNewName("Descanso");
+							} else if (newName === "Descanso") {
+								setNewName("");
+							}
+						}}
+						className="relative w-11 h-6 rounded-full transition-colors cursor-pointer shrink-0"
+						style={{
+							background: isRestDay
+								? "var(--accent-color)"
+								: "rgba(255,255,255,0.15)",
+						}}
+						aria-label="Toggle dia de descanso"
+					>
+						<span
+							className="absolute top-1 left-1 w-4 h-4 rounded-full transition-transform"
+							style={{
+								background: isRestDay ? "#000" : "#fff",
+								transform: isRestDay ? "translateX(20px)" : "translateX(0)",
+							}}
+						/>
+					</button>
 				</div>
 
 				<div className="flex flex-col gap-2.5">
@@ -169,7 +232,7 @@ export function CreatePlanModal({
 					onClick={handleCreate}
 					disabled={
 						saving ||
-						!newName.trim() ||
+						(!isRestDay && !newName.trim()) ||
 						(newDay !== "NONE" && existingDays.includes(newDay))
 					}
 					className="w-full py-[0.85rem] font-bold text-[1rem] rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer mt-2"
@@ -177,7 +240,7 @@ export function CreatePlanModal({
 						background: "var(--accent-color)",
 						color: "#000",
 						fontFamily: "Outfit",
-						boxShadow: !newName.trim()
+						boxShadow: !isRestDay && !newName.trim()
 							? "none"
 							: "0 4px 14px var(--accent-glow)",
 					}}

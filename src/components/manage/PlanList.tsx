@@ -32,9 +32,10 @@ interface Props {
 }
 
 // --- Grip icon ---
-function GripHandle(props: React.HTMLAttributes<HTMLDivElement>) {
+function GripHandle(props: React.HTMLAttributes<HTMLButtonElement>) {
 	return (
-		<div
+		<button
+			type="button"
 			{...props}
 			className="flex items-center justify-center px-1 self-stretch cursor-grab active:cursor-grabbing touch-none shrink-0"
 			style={{ color: "var(--text-muted)" }}
@@ -54,7 +55,7 @@ function GripHandle(props: React.HTMLAttributes<HTMLDivElement>) {
 				<circle cx="9" cy="19" r="1.5" />
 				<circle cx="15" cy="19" r="1.5" />
 			</svg>
-		</div>
+		</button>
 	);
 }
 
@@ -113,12 +114,26 @@ function PlanCard({ plan, index, isDragging, onSelect, onDelete }: CardProps) {
 				role="button"
 				tabIndex={0}
 			>
-				<span
-					className="text-[0.92rem] font-semibold block truncate"
-					style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
-				>
-					{plan.name}
-				</span>
+				<div className="flex items-center gap-2">
+					<span
+						className="text-[0.92rem] font-semibold block truncate"
+						style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
+					>
+						{plan.name}
+					</span>
+					{plan.extra === "descanso" && (
+						<span
+							className="text-[0.62rem] font-bold uppercase tracking-[0.06rem] px-1.5 py-0.5 rounded-md"
+							style={{
+								background: "rgba(255, 170, 0, 0.12)",
+								color: "#ffaa00",
+								border: "1px solid rgba(255, 170, 0, 0.2)",
+							}}
+						>
+							Descanso
+						</span>
+					)}
+				</div>
 				<span
 					className="text-[0.75rem]"
 					style={{ color: "var(--text-secondary)" }}
@@ -128,6 +143,7 @@ function PlanCard({ plan, index, isDragging, onSelect, onDelete }: CardProps) {
 			</div>
 
 			{/* Actions */}
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper */}
 			<div
 				className="flex items-center gap-1 pr-2 shrink-0"
 				onClick={(e) => e.stopPropagation()}

@@ -28,9 +28,10 @@ interface Props {
 }
 
 // --- Grip icon ---
-function GripHandle(props: React.HTMLAttributes<HTMLDivElement>) {
+function GripHandle(props: React.HTMLAttributes<HTMLButtonElement>) {
 	return (
-		<div
+		<button
+			type="button"
 			{...props}
 			className="flex items-center justify-center px-2 self-stretch cursor-grab active:cursor-grabbing touch-none shrink-0"
 			style={{ color: "var(--text-muted)" }}
@@ -50,7 +51,7 @@ function GripHandle(props: React.HTMLAttributes<HTMLDivElement>) {
 				<circle cx="9" cy="19" r="1.5" />
 				<circle cx="15" cy="19" r="1.5" />
 			</svg>
-		</div>
+		</button>
 	);
 }
 
@@ -202,10 +203,9 @@ function ExerciseRow({
 				)}
 				{ex.executionCues && ex.executionCues.length > 0 && (
 					<div className="flex flex-col gap-0.5 mt-1 border-t border-white/5 pt-1">
-						{ex.executionCues.map((cue, idx) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: static cue list
+						{ex.executionCues.map((cue) => (
 							<span
-								key={idx}
+								key={cue}
 								className="text-[0.72rem]"
 								style={{ color: "var(--text-muted)" }}
 							>

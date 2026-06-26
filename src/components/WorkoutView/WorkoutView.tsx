@@ -374,6 +374,55 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 								buttonText="Criar Meu Primeiro Treino"
 								onCreateClick={() => setCreatePlanOpen(true)}
 							/>
+						) : activePlan && activePlan.extra === "descanso" ? (
+							<div
+								className="animate-fade-in p-8 rounded-[1.75rem] text-center flex flex-col items-center justify-center gap-6"
+								style={{
+									background: "var(--card-bg)",
+									border: "1px solid var(--card-border)",
+									backdropFilter: "blur(10px)",
+								}}
+							>
+								<div
+									className="w-16 h-16 rounded-2xl flex items-center justify-center text-[2rem]"
+									style={{
+										background: "var(--accent-soft)",
+										border: "1px dashed var(--accent-mute)",
+										color: "var(--accent-color)",
+									}}
+								>
+									☕
+								</div>
+								<div className="flex flex-col gap-2 max-w-sm">
+									<h2
+										className="text-[1.25rem] font-bold tracking-[-0.02em]"
+										style={{ fontFamily: "Outfit", color: "var(--text-primary)" }}
+									>
+										Dia de Descanso
+									</h2>
+									<p
+										className="text-[0.9rem] leading-relaxed"
+										style={{ color: "var(--text-secondary)" }}
+									>
+										Hoje é seu dia de descanso configurado para este programa. Aproveite para recuperar as energias e regenerar as fibras musculares!
+									</p>
+								</div>
+								{plans.length > 1 && (
+									<button
+										type="button"
+										onClick={() => setSwitcherOpen(true)}
+										className="px-5 py-2.5 rounded-xl text-[0.88rem] font-bold transition-all active:scale-[0.97] cursor-pointer"
+										style={{
+											background: "rgba(255,255,255,0.06)",
+											border: "1px solid rgba(255,255,255,0.1)",
+											color: "var(--text-primary)",
+											fontFamily: "Outfit",
+										}}
+									>
+										Treinar Mesmo Assim
+									</button>
+								)}
+							</div>
 						) : exercises.length === 0 ? (
 							<div
 								className="animate-fade-in p-4 sm:p-6"

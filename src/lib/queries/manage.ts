@@ -127,6 +127,7 @@ export async function createPlan(
 	name: string,
 	suggestedDay: WorkoutPlan["suggestedDay"],
 	sortOrder: number,
+	extra?: string,
 ): Promise<WorkoutPlan> {
 	const {
 		data: { user },
@@ -141,6 +142,7 @@ export async function createPlan(
 			title: name.trim(),
 			suggested_day: suggestedDay,
 			sort_order: sortOrder,
+			extra,
 		})
 		.select()
 		.single();

@@ -118,11 +118,19 @@ export function ManageScreen({
 	const [addTrigger, setAddTrigger] = useState(0);
 	const [showEditPlanModal, setShowEditPlanModal] = useState(false);
 
-	const view: View = selectedPlan
+	const view: View = selectedPlan && selectedPlan.extra !== "descanso"
 		? "editor"
 		: selectedProgram
 			? "plans"
 			: "programs";
+
+	const [prevSelectedPlan, setPrevSelectedPlan] = useState(selectedPlan);
+	if (selectedPlan !== prevSelectedPlan) {
+		setPrevSelectedPlan(selectedPlan);
+		if (selectedPlan && selectedPlan.extra === "descanso") {
+			setShowEditPlanModal(true);
+		}
+	}
 
 	async function handleChanged(newProgramId?: number) {
 		const updated = await getPlansForUser();
@@ -289,7 +297,12 @@ export function ManageScreen({
 								p.id !== selectedPlan.id,
 						)
 						.map((p) => p.suggestedDay)}
-					onClose={() => setShowEditPlanModal(false)}
+					onClose={() => {
+						setShowEditPlanModal(false);
+						if (selectedPlan.extra === "descanso") {
+							setSelectedPlan(null);
+						}
+					}}
 					onChanged={handleChanged}
 				/>
 			)}
