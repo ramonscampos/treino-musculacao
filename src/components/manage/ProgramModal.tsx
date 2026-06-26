@@ -93,7 +93,7 @@ export function ProgramModal({ isOpen, onClose, onChanged, program }: Props) {
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-						className="w-full py-[0.75rem] px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border"
+						className="w-full py-3 px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border"
 						style={{
 							background: "rgba(255,255,255,0.05)",
 							borderColor: "var(--card-border)",
@@ -125,7 +125,7 @@ export function ProgramModal({ isOpen, onClose, onChanged, program }: Props) {
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
 						onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-						className="w-full py-[0.75rem] px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border"
+						className="w-full py-3 px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border"
 						style={{
 							background: "rgba(255,255,255,0.05)",
 							borderColor: "var(--card-border)",

@@ -98,7 +98,7 @@ export function ProgramList({
 						{/* Accent left bar */}
 						{isActive && (
 							<div
-								className="absolute left-0 top-0 bottom-0 w-[3px]"
+								className="absolute left-0 top-0 bottom-0 w-0.75"
 								style={{ background: "var(--accent-color)" }}
 							/>
 						)}

@@ -119,7 +119,7 @@ export function WeekOverview({
 						<span className="text-[0.62rem] text-(--text-muted) font-bold uppercase">
 							{day.letter}
 						</span>
-						<div className="w-[26px] h-[26px] rounded-full bg-white/5 border border-white/10" />
+						<div className="w-6.5 h-6.5 rounded-full bg-white/5 border border-white/10" />
 					</div>
 				))}
 			</div>

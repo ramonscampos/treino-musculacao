@@ -117,12 +117,16 @@ export function CreatePlanModal({
 						id="plan-name"
 						ref={inputRef}
 						type="text"
-						placeholder={isRestDay ? "Descanso" : "ex: Peito + Tríceps, Costas, Inferiores..."}
+						placeholder={
+							isRestDay
+								? "Descanso"
+								: "ex: Peito + Tríceps, Costas, Inferiores..."
+						}
 						value={isRestDay ? "Descanso" : newName}
 						disabled={isRestDay}
 						onChange={(e) => setNewName(e.target.value)}
 						onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-						className="w-full py-[0.75rem] px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border disabled:opacity-50 disabled:cursor-not-allowed"
+						className="w-full py-3 px-4 rounded-2xl focus:outline-none transition-all text-[0.95rem] font-semibold border disabled:opacity-50 disabled:cursor-not-allowed"
 						style={{
 							background: "rgba(255,255,255,0.05)",
 							borderColor: "var(--card-border)",
@@ -250,9 +254,10 @@ export function CreatePlanModal({
 						background: "var(--accent-color)",
 						color: "#000",
 						fontFamily: "Outfit",
-						boxShadow: !isRestDay && !newName.trim()
-							? "none"
-							: "0 4px 14px var(--accent-glow)",
+						boxShadow:
+							!isRestDay && !newName.trim()
+								? "none"
+								: "0 4px 14px var(--accent-glow)",
 					}}
 				>
 					{saving ? "Criando..." : "Criar Treino"}

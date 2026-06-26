@@ -69,7 +69,6 @@ function getTargetDate(dayKey: DayKey): string {
 	return formatLocalDate(targetDate);
 }
 
-
 function calcStreak(
 	sessions: WorkoutSession[],
 	workoutDayCodes: string[] = [],
@@ -89,9 +88,10 @@ function calcStreak(
 	const oldestDate = new Date(`${oldestDateStr}T00:00:00`);
 	oldestDate.setHours(0, 0, 0, 0);
 
-	const plannedDays = workoutDayCodes.length > 0
-		? workoutDayCodes
-		: ["SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+	const plannedDays =
+		workoutDayCodes.length > 0
+			? workoutDayCodes
+			: ["SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
 
 	let streak = 0;
 	const currentDate = new Date(today);
@@ -186,7 +186,12 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 
 	const loadStreak = useCallback(() => {
 		getSessionsInRange(userId, "2000-01-01", "2099-12-31").then((all) => {
-			setStreak(calcStreak(all, plans.map((p) => p.suggestedDay)));
+			setStreak(
+				calcStreak(
+					all,
+					plans.map((p) => p.suggestedDay),
+				),
+			);
 		});
 	}, [userId, plans]);
 
@@ -386,7 +391,10 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 								<div className="flex flex-col gap-2 max-w-sm">
 									<h2
 										className="text-[1.25rem] font-bold tracking-[-0.02em]"
-										style={{ fontFamily: "Outfit", color: "var(--text-primary)" }}
+										style={{
+											fontFamily: "Outfit",
+											color: "var(--text-primary)",
+										}}
 									>
 										Dia de Descanso
 									</h2>
@@ -394,7 +402,9 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 										className="text-[0.9rem] leading-relaxed"
 										style={{ color: "var(--text-secondary)" }}
 									>
-										Hoje é seu dia de descanso configurado para este programa. Aproveite para recuperar as energias e regenerar as fibras musculares!
+										Hoje é seu dia de descanso configurado para este programa.
+										Aproveite para recuperar as energias e regenerar as fibras
+										musculares!
 									</p>
 								</div>
 								{plans.length > 1 && (
@@ -437,7 +447,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 										>
 											<title>Indicador de status</title>
 										</span>
-										<span className="break-words">
+										<span className="wrap-break-word">
 											{activePlan
 												? activePlan.title || activePlan.name
 												: "SEM TREINO SUGERIDO"}
@@ -533,7 +543,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 												boxShadow: "0 0 10px var(--accent-glow)",
 											}}
 										/>
-										<span className="break-words">
+										<span className="wrap-break-word">
 											{activePlan?.name ?? ""}
 										</span>
 										{plans.length > 1 && (
@@ -589,7 +599,9 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 														aria-label="Desfazer conclusão"
 													>
 														<svg
-															className={isTogglingSession ? "animate-spin" : ""}
+															className={
+																isTogglingSession ? "animate-spin" : ""
+															}
 															width="16"
 															height="16"
 															viewBox="0 0 24 24"

@@ -171,7 +171,7 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 								return (
 									<div
 										key={ex.id}
-										className="flex items-center justify-between p-3.5 rounded-2xl border transition-all min-h-[4.25rem]"
+										className="flex items-center justify-between p-3.5 rounded-2xl border transition-all min-h-17"
 										style={{
 											background: "var(--card-bg)",
 											borderColor: "var(--card-border)",
