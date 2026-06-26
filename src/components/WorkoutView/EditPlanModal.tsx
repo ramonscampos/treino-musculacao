@@ -9,6 +9,7 @@ interface Props {
 		id: number;
 		name: string;
 		suggestedDay: DayKey;
+		extra?: string;
 	};
 	existingDays?: DayKey[];
 	onClose: () => void;
@@ -126,57 +127,6 @@ export function EditPlanModal({
 					/>
 				</div>
 
-				{/* Rest Day Toggle */}
-				<div
-					className="flex items-center gap-3 p-3.5 rounded-2xl border"
-					style={{
-						background: "rgba(255,255,255,0.02)",
-						borderColor: "var(--card-border)",
-					}}
-				>
-					<div className="flex-1 min-w-0">
-						<div
-							className="text-[0.88rem] font-bold"
-							style={{ color: "var(--text-primary)", fontFamily: "Outfit" }}
-						>
-							Dia de Descanso
-						</div>
-						<div
-							className="text-[0.72rem] leading-snug mt-0.5"
-							style={{ color: "var(--text-secondary)" }}
-						>
-							Marcar este dia como descanso oficial sem exercícios.
-						</div>
-					</div>
-					<button
-						type="button"
-						onClick={() => {
-							const next = !isRestDay;
-							setIsRestDay(next);
-							if (next) {
-								setName("Descanso");
-							} else if (name === "Descanso") {
-								setName("");
-							}
-						}}
-						className="relative w-11 h-6 rounded-full transition-colors cursor-pointer shrink-0"
-						style={{
-							background: isRestDay
-								? "var(--accent-color)"
-								: "rgba(255,255,255,0.15)",
-						}}
-						aria-label="Toggle dia de descanso"
-					>
-						<span
-							className="absolute top-1 left-1 w-4 h-4 rounded-full transition-transform"
-							style={{
-								background: isRestDay ? "#000" : "#fff",
-								transform: isRestDay ? "translateX(20px)" : "translateX(0)",
-							}}
-						/>
-					</button>
-				</div>
-
 				<div className="flex flex-col gap-2.5">
 					<span
 						className="text-[0.75rem] font-bold uppercase tracking-[0.08rem]"
@@ -187,11 +137,12 @@ export function EditPlanModal({
 					<div className="flex gap-2 flex-wrap">
 						{DAYS.map((d) => {
 							const isOccupied = d !== "NONE" && existingDays.includes(d);
+							const isDisabled = isOccupied || (isRestDay && d === "NONE");
 							return (
 								<button
 									key={d}
 									type="button"
-									disabled={isOccupied}
+									disabled={isDisabled}
 									onClick={() => setDay(d)}
 									className="px-3.5 py-2 rounded-xl text-[0.8rem] font-bold cursor-pointer transition-all border active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
 									style={{
@@ -218,7 +169,8 @@ export function EditPlanModal({
 					disabled={
 						saving ||
 						(!isRestDay && !name.trim()) ||
-						(day !== "NONE" && existingDays.includes(day))
+						(day !== "NONE" && existingDays.includes(day)) ||
+						(isRestDay && day === "NONE")
 					}
 					className="w-full py-[0.85rem] font-bold text-[1rem] rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer mt-2"
 					style={{

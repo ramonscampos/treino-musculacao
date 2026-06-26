@@ -1,12 +1,22 @@
+import { useState } from "react";
 import { COLOR_PRESETS, type User } from "../../types";
+import { ManageExercisesModal } from "./ManageExercisesModal";
 
 interface Props {
 	user: User;
 	updateThemeColor: (color: string) => Promise<void>;
 	signOut: () => Promise<void>;
+	onChanged?: () => void;
 }
 
-export function ConfigScreen({ user, updateThemeColor, signOut }: Props) {
+export function ConfigScreen({
+	user,
+	updateThemeColor,
+	signOut,
+	onChanged,
+}: Props) {
+	const [showManageExercises, setShowManageExercises] = useState(false);
+
 	return (
 		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))] animate-fade-in">
 			<div>
@@ -108,6 +118,65 @@ export function ConfigScreen({ user, updateThemeColor, signOut }: Props) {
 				</div>
 			</div>
 
+			{/* Gerenciamento */}
+			<div
+				className="p-5 rounded-[1.25rem] border flex flex-col gap-3"
+				style={{
+					background: "var(--card-bg)",
+					borderColor: "var(--card-border)",
+				}}
+			>
+				<h3
+					className="text-[0.75rem] uppercase tracking-[0.12rem] font-bold"
+					style={{ color: "var(--text-muted)", fontFamily: "Outfit" }}
+				>
+					Dados do Aplicativo
+				</h3>
+				<button
+					type="button"
+					onClick={() => setShowManageExercises(true)}
+					className="flex items-center justify-between w-full py-3 px-4 rounded-2xl text-[0.88rem] font-bold cursor-pointer transition-all active:scale-[0.97] border"
+					style={{
+						background: "rgba(255,255,255,0.02)",
+						borderColor: "rgba(255,255,255,0.06)",
+						color: "var(--text-primary)",
+					}}
+				>
+					<div className="flex items-center gap-3">
+						<svg
+							aria-hidden={true}
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							style={{ color: "var(--accent-color)" }}
+						>
+							<path d="M12 20h9" />
+							<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+						</svg>
+						<span>Gerenciar Exercícios</span>
+					</div>
+					<svg
+						aria-hidden={true}
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2.5"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						className="opacity-40"
+					>
+						<polyline points="9 18 15 12 9 6" />
+					</svg>
+				</button>
+			</div>
+
 			{/* Sair da Conta */}
 			<button
 				type="button"
@@ -143,6 +212,12 @@ export function ConfigScreen({ user, updateThemeColor, signOut }: Props) {
 			>
 				IRON PROTOCOL v2.0
 			</p>
+
+			<ManageExercisesModal
+				isOpen={showManageExercises}
+				onClose={() => setShowManageExercises(false)}
+				onChanged={onChanged}
+			/>
 		</div>
 	);
 }

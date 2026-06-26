@@ -163,7 +163,7 @@ export async function updatePlan(
 	updates: {
 		name?: string;
 		suggestedDay?: WorkoutPlan["suggestedDay"];
-		extra?: string;
+		extra?: string | null;
 	},
 ): Promise<void> {
 	const payload: Record<string, unknown> = {};

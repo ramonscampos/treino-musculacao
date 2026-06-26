@@ -329,36 +329,42 @@ export function PlanEditor({ plan, onChanged }: Props) {
 			)}
 
 			{/* Add exercise */}
-			{showPicker ? (
-				<ExercisePicker
-					onSelect={handleExerciseSelected}
-					onCancel={() => setShowPicker(false)}
-				/>
-			) : (
-				<button
-					type="button"
-					onClick={() => setShowPicker(true)}
-					className="flex items-center justify-center gap-2 py-3 rounded-2xl text-[0.9rem] font-medium cursor-pointer transition-all active:opacity-70"
-					style={{
-						border: "1.5px dashed var(--accent-mute)",
-						color: "var(--accent-color)",
-						background: "var(--accent-soft)",
-					}}
+			<button
+				type="button"
+				onClick={() => setShowPicker(true)}
+				className="flex items-center justify-center gap-2 py-3 rounded-2xl text-[0.9rem] font-medium cursor-pointer transition-all active:opacity-70"
+				style={{
+					border: "1.5px dashed var(--accent-mute)",
+					color: "var(--accent-color)",
+					background: "var(--accent-soft)",
+				}}
+			>
+				<svg
+					aria-hidden="true"
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2.5"
+					strokeLinecap="round"
 				>
-					<svg
-						aria-hidden="true"
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2.5"
-						strokeLinecap="round"
-					>
-						<path d="M12 5v14M5 12h14" />
-					</svg>
-					Adicionar exercício
-				</button>
+					<path d="M12 5v14M5 12h14" />
+				</svg>
+				Adicionar exercício
+			</button>
+
+			{showPicker && (
+				<Modal
+					isOpen={showPicker}
+					onClose={() => setShowPicker(false)}
+					title="Adicionar Exercício"
+				>
+					<ExercisePicker
+						onSelect={handleExerciseSelected}
+						onCancel={() => setShowPicker(false)}
+					/>
+				</Modal>
 			)}
 
 			{/* Modal de Configuração do Exercício ao Adicionar */}

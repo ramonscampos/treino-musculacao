@@ -168,6 +168,14 @@ export function CreatePlanModal({
 							setIsRestDay(next);
 							if (next) {
 								setNewName("Descanso");
+								if (newDay === "NONE") {
+									const availableDay = DAYS.find(
+										(d) => d !== "NONE" && !existingDays.includes(d),
+									);
+									if (availableDay) {
+										setNewDay(availableDay);
+									}
+								}
 							} else if (newName === "Descanso") {
 								setNewName("");
 							}
@@ -200,11 +208,12 @@ export function CreatePlanModal({
 					<div className="flex gap-2 flex-wrap">
 						{DAYS.map((d) => {
 							const isOccupied = d !== "NONE" && existingDays.includes(d);
+							const isDisabled = isOccupied || (isRestDay && d === "NONE");
 							return (
 								<button
 									key={d}
 									type="button"
-									disabled={isOccupied}
+									disabled={isDisabled}
 									onClick={() => setNewDay(d)}
 									className="px-3.5 py-2 rounded-xl text-[0.8rem] font-bold cursor-pointer transition-all border active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
 									style={{
@@ -233,7 +242,8 @@ export function CreatePlanModal({
 					disabled={
 						saving ||
 						(!isRestDay && !newName.trim()) ||
-						(newDay !== "NONE" && existingDays.includes(newDay))
+						(newDay !== "NONE" && existingDays.includes(newDay)) ||
+						(isRestDay && newDay === "NONE")
 					}
 					className="w-full py-[0.85rem] font-bold text-[1rem] rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer mt-2"
 					style={{

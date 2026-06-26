@@ -114,26 +114,10 @@ export function ExercisePicker({ onSelect, onCancel }: Props) {
 									color: "var(--accent-color)",
 								}}
 							>
-								<span>+ Cadastrar Novo Exercício</span>
+								<span>+ Adicionar Novo Exercício</span>
 								<span className="text-[0.75rem] opacity-75 font-normal">
 									Criar personalizado
 								</span>
-							</button>
-						)}
-
-						{showCreate && (
-							<button
-								type="button"
-								onClick={handleCreate}
-								disabled={creating}
-								className="text-left px-4 py-3 rounded-xl text-[0.9rem] font-medium transition-all active:opacity-70 cursor-pointer"
-								style={{
-									background: "var(--accent-soft)",
-									border: "1px dashed var(--accent-mute)",
-									color: "var(--accent-color)",
-								}}
-							>
-								{creating ? "Criando..." : `Criar "${query.trim()}"`}
 							</button>
 						)}
 
@@ -151,6 +135,22 @@ export function ExercisePicker({ onSelect, onCancel }: Props) {
 								{ex.name}
 							</button>
 						))}
+
+						{showCreate && (
+							<button
+								type="button"
+								onClick={handleCreate}
+								disabled={creating}
+								className="text-left px-4 py-3 rounded-xl text-[0.9rem] font-medium transition-all active:opacity-70 cursor-pointer mt-1"
+								style={{
+									background: "var(--accent-soft)",
+									border: "1px dashed var(--accent-mute)",
+									color: "var(--accent-color)",
+								}}
+							>
+								{creating ? "Criando..." : `Adicionar "${query.trim()}"`}
+							</button>
+						)}
 
 						{filtered.length === 0 && !showCreate && (
 							<div className="flex flex-col items-center gap-3 py-6">
@@ -175,7 +175,7 @@ export function ExercisePicker({ onSelect, onCancel }: Props) {
 											color: "var(--accent-color)",
 										}}
 									>
-										+ Cadastrar "{query}"
+										+ Adicionar "{query}"
 									</button>
 								)}
 							</div>
@@ -196,7 +196,7 @@ export function ExercisePicker({ onSelect, onCancel }: Props) {
 			<Modal
 				isOpen={showCreateForm}
 				onClose={() => setShowCreateForm(false)}
-				title="Cadastrar Novo Exercício"
+				title="Adicionar Novo Exercício"
 			>
 				<div className="flex flex-col gap-4">
 					<div className="flex flex-col gap-2.5">
@@ -255,7 +255,7 @@ export function ExercisePicker({ onSelect, onCancel }: Props) {
 								: "0 4px 14px var(--accent-glow)",
 						}}
 					>
-						{creating ? "Cadastrando..." : "Cadastrar Exercício"}
+						{creating ? "Adicionando..." : "Adicionar Exercício"}
 					</button>
 				</div>
 			</Modal>

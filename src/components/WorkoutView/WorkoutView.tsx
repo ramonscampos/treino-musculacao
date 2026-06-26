@@ -694,6 +694,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 					user={user}
 					updateThemeColor={updateThemeColor}
 					signOut={signOut}
+					onChanged={triggerRefresh}
 				/>
 			)}
 
