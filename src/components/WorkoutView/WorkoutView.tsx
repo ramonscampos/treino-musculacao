@@ -4,7 +4,6 @@ import { todayKey, useWorkoutPlan } from "../../hooks/useWorkoutPlan";
 import { getLastLoad } from "../../lib/queries/loads";
 import {
 	deleteSession,
-	getSessionForDate,
 	getSessionsInRange,
 	upsertSession,
 } from "../../lib/queries/sessions";
@@ -69,16 +68,6 @@ function getTargetDate(dayKey: DayKey): string {
 	return formatLocalDate(targetDate);
 }
 
-function getWeekRange() {
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-	const day = today.getDay();
-	const sunday = new Date(today);
-	sunday.setDate(today.getDate() - day);
-	const saturday = new Date(sunday);
-	saturday.setDate(sunday.getDate() + 6);
-	return { today, sunday, saturday };
-}
 
 function calcStreak(sessions: WorkoutSession[], restDays: number): number {
 	if (!sessions.length) return 0;
@@ -136,6 +125,9 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 		exercises,
 		initialLoading,
 		exercisesLoading,
+		weekSessions,
+		sessionDone,
+		toggleSession,
 	} = useWorkoutPlan(userId, refreshTrigger);
 
 	const activeProgram = useMemo(
@@ -161,9 +153,8 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 	>("home");
 	const [createPlanOpen, setCreatePlanOpen] = useState(false);
 	const [createProgramOpen, setCreateProgramOpen] = useState(false);
-	const [sessionDone, setSessionDone] = useState(false);
-	const [weekSessions, setWeekSessions] = useState<WorkoutSession[]>([]);
 	const [streak, setStreak] = useState(0);
+	const [isTogglingSession, setIsTogglingSession] = useState(false);
 	const { saveLoad, getLastLoggedLoad } = useLoadLogs(userId);
 
 	useEffect(() => {
@@ -184,42 +175,33 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 		});
 	}, [userId, exercises]);
 
-	useEffect(() => {
-		void refreshTrigger;
-		const dateStr = getTargetDate(selectedDay);
-		getSessionForDate(userId, dateStr).then((s) => setSessionDone(!!s));
-	}, [userId, selectedDay, refreshTrigger]);
-
-	useEffect(() => {
-		void sessionDone;
-		void refreshTrigger;
-		const { sunday, saturday } = getWeekRange();
-		getSessionsInRange(
-			userId,
-			formatLocalDate(sunday),
-			formatLocalDate(saturday),
-		).then(setWeekSessions);
-	}, [userId, sessionDone, refreshTrigger]);
-
-	useEffect(() => {
-		void sessionDone;
-		void refreshTrigger;
+	const loadStreak = useCallback(() => {
 		getSessionsInRange(userId, "2000-01-01", "2099-12-31").then((all) => {
 			setStreak(calcStreak(all, activeProgram?.restDays ?? 0));
 		});
-	}, [userId, activeProgram, sessionDone, refreshTrigger]);
+	}, [userId, activeProgram]);
+
+	useEffect(() => {
+		loadStreak();
+	}, [loadStreak]);
 
 	async function handleToggleDone() {
+		if (!activePlan) return;
 		const dateStr = getTargetDate(selectedDay);
-		if (sessionDone) {
-			await deleteSession(userId, dateStr);
-			setSessionDone(false);
-			triggerRefresh();
-		} else {
-			if (!activePlan) return;
-			await upsertSession(userId, activePlan.id, dateStr);
-			setSessionDone(true);
-			triggerRefresh();
+		setIsTogglingSession(true);
+		try {
+			if (sessionDone) {
+				await deleteSession(userId, dateStr);
+				toggleSession(activePlan.id, dateStr, false);
+			} else {
+				await upsertSession(userId, activePlan.id, dateStr);
+				toggleSession(activePlan.id, dateStr, true);
+			}
+			loadStreak();
+		} catch (error) {
+			console.error("Error toggling session status:", error);
+		} finally {
+			setIsTogglingSession(false);
 		}
 	}
 
@@ -588,7 +570,8 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 													<button
 														type="button"
 														onClick={handleToggleDone}
-														className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] transition-all active:scale-[0.93] shrink-0 cursor-pointer"
+														disabled={isTogglingSession}
+														className={`w-9 h-9 flex items-center justify-center rounded-[0.65rem] transition-all active:scale-[0.93] shrink-0 cursor-pointer ${isTogglingSession ? "opacity-60 cursor-not-allowed" : ""}`}
 														style={{
 															border: "1.5px solid rgba(255,78,78,0.5)",
 															background: "rgba(255,78,78,0.08)",
@@ -597,6 +580,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 														aria-label="Desfazer conclusão"
 													>
 														<svg
+															className={isTogglingSession ? "animate-spin" : ""}
 															width="16"
 															height="16"
 															viewBox="0 0 24 24"
@@ -616,7 +600,8 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 												<button
 													type="button"
 													onClick={handleToggleDone}
-													className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.2rem] font-bold transition-all active:bg-(--accent-color) active:text-black active:scale-[0.97] shrink-0 cursor-pointer"
+													disabled={isTogglingSession}
+													className={`w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.2rem] font-bold transition-all active:bg-(--accent-color) active:text-black active:scale-[0.97] shrink-0 cursor-pointer ${isTogglingSession ? "opacity-60 cursor-not-allowed" : ""}`}
 													style={{
 														border: "1.5px solid var(--accent-color)",
 														background: "transparent",
@@ -625,7 +610,24 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 													}}
 													aria-label="Concluir treino"
 												>
-													+
+													{isTogglingSession ? (
+														<svg
+															className="animate-spin"
+															width="16"
+															height="16"
+															viewBox="0 0 24 24"
+															fill="none"
+															stroke="currentColor"
+															strokeWidth="2.5"
+															strokeLinecap="round"
+															strokeLinejoin="round"
+														>
+															<title>Carregando</title>
+															<path d="M21 12a9 9 0 1 1-6.219-8.56" />
+														</svg>
+													) : (
+														"+"
+													)}
 												</button>
 											)}
 										</div>

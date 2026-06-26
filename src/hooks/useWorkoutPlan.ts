@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getUserPrograms } from "../lib/queries/manage";
 import { getPlanExercises, getPlansForUser } from "../lib/queries/plans";
-import { getSessionForDate } from "../lib/queries/sessions";
+import { getSessionsInRange } from "../lib/queries/sessions";
 import {
 	DAY_ORDER,
 	type DayKey,
@@ -10,6 +10,7 @@ import {
 	type PlanExercise,
 	type Program,
 	type WorkoutPlan,
+	type WorkoutSession,
 } from "../types";
 
 function getTargetDateStr(dayKey: DayKey): string {
@@ -31,6 +32,17 @@ export function todayStr(): string {
 	return formatLocalDate(new Date());
 }
 
+function getWeekRange() {
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	const day = today.getDay();
+	const sunday = new Date(today);
+	sunday.setDate(today.getDate() - day);
+	const saturday = new Date(sunday);
+	saturday.setDate(sunday.getDate() + 6);
+	return { today, sunday, saturday };
+}
+
 const exercisesCache = new Map<number, PlanExercise[]>();
 
 export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
@@ -44,40 +56,41 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 	const [exercises, setExercises] = useState<PlanExercise[]>([]);
 	const [initialLoading, setInitialLoading] = useState(true);
 	const [exercisesLoading, setExercisesLoading] = useState(true);
-	const [resolvingOverride, setResolvingOverride] = useState(true);
+	const [weekSessions, setWeekSessions] = useState<WorkoutSession[]>([]);
 
-	const [prevSelectedDay, setPrevSelectedDay] = useState(selectedDay);
 	const [prevUserId, setPrevUserId] = useState(userId);
 	const [prevRefreshTrigger, setPrevRefreshTrigger] = useState(refreshTrigger);
 
-	if (
-		selectedDay !== prevSelectedDay ||
-		userId !== prevUserId ||
-		refreshTrigger !== prevRefreshTrigger
-	) {
-		setPrevSelectedDay(selectedDay);
+	// Detect user or admin refresh changes to reset states and clear cache
+	if (userId !== prevUserId || refreshTrigger !== prevRefreshTrigger) {
 		setPrevUserId(userId);
 		setPrevRefreshTrigger(refreshTrigger);
-		setResolvingOverride(true);
-		if (userId !== prevUserId || refreshTrigger !== prevRefreshTrigger) {
-			setInitialLoading(true);
-		}
+		setInitialLoading(true);
+		exercisesCache.clear();
 	}
 
 	useEffect(() => {
-		void userId;
+		// Reference refreshTrigger to satisfy React Compiler dependency analysis
 		void refreshTrigger;
+
 		let active = true;
-		exercisesCache.clear();
-		Promise.all([getUserPrograms(), getPlansForUser()]).then(([p, pl]) => {
+		const { sunday, saturday } = getWeekRange();
+
+		Promise.all([
+			getUserPrograms(),
+			getPlansForUser(),
+			getSessionsInRange(userId, formatLocalDate(sunday), formatLocalDate(saturday)),
+		]).then(([p, pl, sessions]) => {
 			if (!active) return;
 			setPrograms(p);
 			if (p.length > 0) {
 				setSelectedProgramId((prev) => prev ?? p[0].id);
 			}
 			setPlans(pl);
+			setWeekSessions(sessions);
 			setInitialLoading(false);
 		});
+
 		return () => {
 			active = false;
 		};
@@ -87,37 +100,53 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 		? plans.filter((p) => p.programId === selectedProgramId)
 		: plans;
 
-	const activePlan = resolvingOverride
-		? null
-		: overridePlanId
-			? programPlans.find((p) => p.id === overridePlanId)
-			: programPlans.find((p) => p.suggestedDay === selectedDay);
+	const targetDate = getTargetDateStr(selectedDay);
+	const activeSession = weekSessions.find((s) => s.performedOn === targetDate);
+	const sessionDone = !!activeSession;
 
+	// Derived state: Sync overridePlanId with active session when selectedDay or weekSessions changes
+	const [prevDayAndSessions, setPrevDayAndSessions] = useState({
+		day: selectedDay,
+		sessions: weekSessions,
+	});
+
+	if (selectedDay !== prevDayAndSessions.day || weekSessions !== prevDayAndSessions.sessions) {
+		setPrevDayAndSessions({ day: selectedDay, sessions: weekSessions });
+		const session = weekSessions.find((s) => s.performedOn === targetDate);
+		setOverridePlanId(session ? session.planId : null);
+	}
+
+	const activePlan = overridePlanId
+		? programPlans.find((p) => p.id === overridePlanId)
+		: programPlans.find((p) => p.suggestedDay === selectedDay);
+
+	// Derived state: Avoid useEffect render lag for loading cached exercises
+	const [renderedPlanId, setRenderedPlanId] = useState<number | null>(null);
+
+	if (activePlan && activePlan.id !== renderedPlanId) {
+		setRenderedPlanId(activePlan.id);
+		const cached = exercisesCache.get(activePlan.id);
+		if (cached) {
+			setExercises(cached);
+			setExercisesLoading(false);
+		} else {
+			setExercises([]);
+			setExercisesLoading(true);
+		}
+	} else if (!activePlan && renderedPlanId !== null) {
+		setRenderedPlanId(null);
+		setExercises([]);
+		setExercisesLoading(false);
+	}
+
+	// Fetch exercises when needed
 	useEffect(() => {
-		if (!activePlan) {
-			const timer = setTimeout(() => {
-				setExercises([]);
-				setExercisesLoading(false);
-			}, 0);
-			return () => clearTimeout(timer);
-		}
-
-		if (exercisesCache.has(activePlan.id)) {
-			const timer = setTimeout(() => {
-				setExercises(exercisesCache.get(activePlan.id) || []);
-				setExercisesLoading(false);
-			}, 0);
-			return () => clearTimeout(timer);
-		}
+		if (!activePlan) return;
+		if (exercisesCache.has(activePlan.id)) return;
 
 		let active = true;
-		const timer = setTimeout(() => {
-			if (active) setExercisesLoading(true);
-		}, 0);
-
 		getPlanExercises(activePlan.id).then((ex) => {
 			if (!active) return;
-			clearTimeout(timer);
 			exercisesCache.set(activePlan.id, ex);
 			setExercises(ex);
 			setExercisesLoading(false);
@@ -125,22 +154,24 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 
 		return () => {
 			active = false;
-			clearTimeout(timer);
 		};
 	}, [activePlan]);
 
-	useEffect(() => {
-		void refreshTrigger;
-		const targetDate = getTargetDateStr(selectedDay);
-		getSessionForDate(userId, targetDate).then((s) => {
-			if (s) {
-				setOverridePlanId(s.planId);
+	const toggleSession = useCallback((planId: number, dateStr: string, isDone: boolean) => {
+		setWeekSessions((prev) => {
+			if (isDone) {
+				const newSession: WorkoutSession = {
+					id: Date.now(), // temporary local id
+					userId,
+					planId,
+					performedOn: dateStr,
+				};
+				return [...prev.filter((s) => s.performedOn !== dateStr), newSession];
 			} else {
-				setOverridePlanId(null);
+				return prev.filter((s) => s.performedOn !== dateStr);
 			}
-			setResolvingOverride(false);
 		});
-	}, [userId, selectedDay, refreshTrigger]);
+	}, [userId]);
 
 	return {
 		programs,
@@ -155,6 +186,9 @@ export function useWorkoutPlan(userId: string, refreshTrigger?: number) {
 		setOverridePlanId,
 		exercises,
 		initialLoading,
-		exercisesLoading: exercisesLoading || resolvingOverride,
+		exercisesLoading,
+		weekSessions,
+		sessionDone,
+		toggleSession,
 	};
 }
