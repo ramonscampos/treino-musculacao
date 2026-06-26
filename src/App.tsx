@@ -66,15 +66,15 @@ export function App() {
 			orientation: "portrait",
 			icons: [
 				{
-					src: svgDataUri,
-					sizes: "any",
-					type: "image/svg+xml",
-					purpose: "any maskable",
-				},
-				{
 					src: `/apple-touch-icon-${colorId}.png`,
 					sizes: "180x180",
 					type: "image/png",
+					purpose: "any maskable",
+				},
+				{
+					src: svgDataUri,
+					sizes: "any",
+					type: "image/svg+xml",
 					purpose: "any maskable",
 				},
 			],
