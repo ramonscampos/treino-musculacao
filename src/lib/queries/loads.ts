@@ -4,30 +4,59 @@ import { supabase } from "../supabase";
 export async function getLastLoad(
 	_userId: string,
 	exerciseId: number,
+	planId?: number,
 ): Promise<LoadLog | null> {
-	const { data, error } = await supabase
+	let query = supabase
 		.from("load_logs")
 		.select("*, load_log_sets(*)")
-		.eq("exercise_id", exerciseId)
+		.eq("exercise_id", exerciseId);
+
+	if (planId) {
+		query = query.eq("plan_id", planId);
+	}
+
+	const { data, error } = await query
 		.order("logged_at", { ascending: false })
 		.limit(1)
 		.maybeSingle();
+
 	if (error) throw error;
-	if (!data) return null;
-	return mapLog(data);
+	if (data) return mapLog(data);
+
+	// Fallback: if planId was specified, check for legacy logs where plan_id is null
+	if (planId) {
+		const { data: fallbackData } = await supabase
+			.from("load_logs")
+			.select("*, load_log_sets(*)")
+			.eq("exercise_id", exerciseId)
+			.is("plan_id", null)
+			.order("logged_at", { ascending: false })
+			.limit(1)
+			.maybeSingle();
+
+		if (fallbackData) return mapLog(fallbackData);
+	}
+
+	return null;
 }
 
 export async function getLoadForDate(
 	_userId: string,
 	exerciseId: number,
 	date: string,
+	planId?: number,
 ): Promise<LoadLog | null> {
-	const { data, error } = await supabase
+	let query = supabase
 		.from("load_logs")
 		.select("*, load_log_sets(*)")
 		.eq("exercise_id", exerciseId)
-		.eq("logged_at", date)
-		.maybeSingle();
+		.eq("logged_at", date);
+
+	if (planId) {
+		query = query.eq("plan_id", planId);
+	}
+
+	const { data, error } = await query.maybeSingle();
 	if (error) throw error;
 	if (!data) return null;
 	return mapLog(data);
@@ -36,12 +65,18 @@ export async function getLoadForDate(
 export async function getAllLoadsForExercise(
 	_userId: string,
 	exerciseId: number,
+	planId?: number,
 ): Promise<LoadLog[]> {
-	const { data, error } = await supabase
+	let query = supabase
 		.from("load_logs")
 		.select("*, load_log_sets(*)")
-		.eq("exercise_id", exerciseId)
-		.order("logged_at");
+		.eq("exercise_id", exerciseId);
+
+	if (planId) {
+		query = query.eq("plan_id", planId);
+	}
+
+	const { data, error } = await query.order("logged_at");
 	if (error) throw error;
 	return (data ?? []).map(mapLog);
 }
@@ -51,20 +86,32 @@ export async function upsertLoad(
 	exerciseId: number,
 	date: string,
 	weights: number[],
+	planId?: number,
 ): Promise<void> {
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
 	if (!user) throw new Error("Not authenticated");
 
+	const payload: Record<string, unknown> = {
+		user_id: user.id,
+		exercise_id: exerciseId,
+		logged_at: date,
+	};
+	if (planId) {
+		payload.plan_id = planId;
+	}
+
+	const onConflict = planId
+		? "user_id,plan_id,exercise_id,logged_at"
+		: "user_id,exercise_id,logged_at";
+
 	const { data: log, error: logError } = await supabase
 		.from("load_logs")
-		.upsert(
-			{ user_id: user.id, exercise_id: exerciseId, logged_at: date },
-			{ onConflict: "user_id,exercise_id,logged_at" },
-		)
+		.upsert(payload, { onConflict })
 		.select("id")
 		.single();
+
 	if (logError) throw logError;
 	if (!log) throw new Error("Failed to upsert load log");
 
@@ -88,6 +135,7 @@ function mapLog(data: Record<string, unknown>): LoadLog {
 		id: data.id as number,
 		userId: data.user_id as string,
 		exerciseId: data.exercise_id as number,
+		planId: data.plan_id as number | undefined,
 		loggedAt: data.logged_at as string,
 		sets: sets
 			.sort((a, b) => (a.set_number as number) - (b.set_number as number))

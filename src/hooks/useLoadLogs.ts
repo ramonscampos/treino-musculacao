@@ -6,10 +6,10 @@ export function useLoadLogs(userId: string) {
 	const [saving, setSaving] = useState(false);
 
 	const saveLoad = useCallback(
-		async (exerciseId: number, weights: number[]) => {
+		async (exerciseId: number, weights: number[], planId?: number) => {
 			setSaving(true);
 			try {
-				await upsertLoad(userId, exerciseId, todayStr(), weights);
+				await upsertLoad(userId, exerciseId, todayStr(), weights, planId);
 			} finally {
 				setSaving(false);
 			}
@@ -18,12 +18,14 @@ export function useLoadLogs(userId: string) {
 	);
 
 	const getTodayLoad = useCallback(
-		(exerciseId: number) => getLoadForDate(userId, exerciseId, todayStr()),
+		(exerciseId: number, planId?: number) =>
+			getLoadForDate(userId, exerciseId, todayStr(), planId),
 		[userId],
 	);
 
 	const getLastLoggedLoad = useCallback(
-		(exerciseId: number) => getLastLoad(userId, exerciseId),
+		(exerciseId: number, planId?: number) =>
+			getLastLoad(userId, exerciseId, planId),
 		[userId],
 	);
 

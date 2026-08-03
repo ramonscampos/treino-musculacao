@@ -58,6 +58,7 @@ export interface LoadLog {
 	id: number;
 	userId: string;
 	exerciseId: number;
+	planId?: number;
 	loggedAt: string;
 	sets: LoadLogSet[];
 }

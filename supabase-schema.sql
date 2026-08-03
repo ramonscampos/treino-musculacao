@@ -108,13 +108,14 @@ CREATE TABLE IF NOT EXISTS workout_sessions (
   UNIQUE(user_id, performed_on)
 );
 
--- Registro de cargas (um por exercício por dia)
+-- Registro de cargas (um por exercício por dia por plano)
 CREATE TABLE IF NOT EXISTS load_logs (
   id BIGSERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  plan_id BIGINT REFERENCES workout_plans(id) ON DELETE CASCADE,
   exercise_id BIGINT NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
   logged_at DATE NOT NULL,
-  UNIQUE(user_id, exercise_id, logged_at)
+  UNIQUE(user_id, plan_id, exercise_id, logged_at)
 );
 
 -- Séries dentro do registro de cargas

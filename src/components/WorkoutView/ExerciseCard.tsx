@@ -58,15 +58,13 @@ export function ExerciseCard({
 					style={{ fontFamily: "Outfit" }}
 				>
 					{ex.sets
-						? ex.extra
-							? `${ex.sets}x ${ex.extra}`
-							: ex.repsMin && ex.repsMax
-								? ex.repsMin === ex.repsMax
-									? `${ex.sets}x${ex.repsMin}`
-									: `${ex.sets}x${ex.repsMin}-${ex.repsMax}`
-								: ex.repsMin
-									? `${ex.sets}x${ex.repsMin}`
-									: `${ex.sets} séries`
+						? ex.repsMin
+							? ex.repsMax && ex.repsMax !== ex.repsMin
+								? `${ex.sets}x${ex.repsMin}-${ex.repsMax}`
+								: `${ex.sets}x${ex.repsMin}`
+							: ex.extra
+								? `${ex.sets}x ${ex.extra}`
+								: `${ex.sets} séries`
 						: ex.extra || ""}
 				</span>
 			</div>

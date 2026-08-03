@@ -154,7 +154,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 		[setSelectedProgramId],
 	);
 
-	const [weightsMap, setWeightsMap] = useState<Record<number, number[]>>({});
+	const [weightsMap, setWeightsMap] = useState<Record<string, number[]>>({});
 	const [loadModalEx, setLoadModalEx] = useState<PlanExercise | null>(null);
 	const [switcherOpen, setSwitcherOpen] = useState(false);
 	const [activeTab, setActiveTab] = useState<
@@ -170,14 +170,16 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 		if (exercises.length === 0) return;
 		Promise.all(
 			exercises.map((ex) =>
-				getLastLoad(userId, ex.exerciseId).then((log) => ({
+				getLastLoad(userId, ex.exerciseId, ex.planId).then((log) => ({
+					key: `${ex.planId}_${ex.exerciseId}`,
 					exerciseId: ex.exerciseId,
 					weights: log?.sets.map((s) => s.weight) ?? [],
 				})),
 			),
 		).then((results) => {
-			const map: Record<number, number[]> = {};
+			const map: Record<string, number[]> = {};
 			results.forEach((r) => {
+				map[r.key] = r.weights;
 				map[r.exerciseId] = r.weights;
 			});
 			setWeightsMap(map);
@@ -219,8 +221,19 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 		}
 	}
 
-	function handleLoadSaved(exerciseId: number, weights: number[]) {
-		setWeightsMap((prev) => ({ ...prev, [exerciseId]: weights }));
+	function handleLoadSaved(
+		exerciseId: number,
+		weights: number[],
+		planId?: number,
+	) {
+		setWeightsMap((prev) => {
+			const map = { ...prev };
+			if (planId) {
+				map[`${planId}_${exerciseId}`] = weights;
+			}
+			map[exerciseId] = weights;
+			return map;
+		});
 	}
 
 	const brandName = "Iron Protocol";
@@ -660,7 +673,11 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 										<ExerciseCard
 											key={ex.id}
 											exercise={ex}
-											lastWeights={weightsMap[ex.exerciseId] ?? []}
+											lastWeights={
+												weightsMap[`${ex.planId}_${ex.exerciseId}`] ??
+												weightsMap[ex.exerciseId] ??
+												[]
+											}
 											onOpenLoad={() => setLoadModalEx(ex)}
 											supersetTargetName={
 												ex.isSupersetWith

@@ -4,11 +4,16 @@ import type { PlanExercise } from "../../types";
 interface Props {
 	exercise: PlanExercise | null;
 	onClose: () => void;
-	onSaved: (exerciseId: number, weights: number[]) => void;
+	onSaved: (exerciseId: number, weights: number[], planId?: number) => void;
 	getLastLoad: (
 		exerciseId: number,
+		planId?: number,
 	) => Promise<{ sets: { weight: number }[] } | null>;
-	saveLoad: (exerciseId: number, weights: number[]) => Promise<void>;
+	saveLoad: (
+		exerciseId: number,
+		weights: number[],
+		planId?: number,
+	) => Promise<void>;
 }
 
 export function LoadModal({
@@ -66,7 +71,7 @@ export function LoadModal({
 				if (active) setOpen(true);
 			}, 0);
 
-			getLastLoad(exercise.exerciseId)
+			getLastLoad(exercise.exerciseId, exercise.planId)
 				.then((log) => {
 					if (!active) return;
 					if (log && log.sets.length > 0) {
@@ -127,8 +132,8 @@ export function LoadModal({
 			: weights.map((w) => parseFloat(w) || 0);
 		setSaving(true);
 		try {
-			await saveLoad(exercise.exerciseId, parsed);
-			onSaved(exercise.exerciseId, parsed);
+			await saveLoad(exercise.exerciseId, parsed, exercise.planId);
+			onSaved(exercise.exerciseId, parsed, exercise.planId);
 		} catch (err) {
 			console.error("Erro ao salvar carga:", err);
 		} finally {
