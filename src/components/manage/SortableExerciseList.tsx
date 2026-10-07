@@ -19,6 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { reorderExercises } from "../../lib/queries/manage";
 import type { PlanExercise } from "../../types";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	exercises: PlanExercise[];
@@ -256,6 +257,7 @@ export function SortableExerciseList({
 	onEdit,
 	onRemove,
 }: Props) {
+	const { showToast } = useToast();
 	const [activeId, setActiveId] = useState<number | null>(null);
 
 	const sensors = useSensors(
@@ -284,7 +286,11 @@ export function SortableExerciseList({
 		// Persist to DB in background
 		reorderExercises(
 			next.map((item, idx) => ({ id: item.id, sortOrder: idx })),
-		).catch(console.error);
+		).catch((err) => {
+			console.error("Erro ao reordenar exercícios:", err);
+			onReorder(exercises);
+			showToast("Não foi possível salvar a nova ordem");
+		});
 	}
 
 	const activeEx = activeId ? exercises.find((e) => e.id === activeId) : null;

@@ -1,20 +1,24 @@
 import { useMemo } from "react";
-import type { WorkoutSession } from "../../types";
+import {
+	type DayKey,
+	formatLocalDate,
+	JS_DAY_TO_KEY,
+	type WorkoutSession,
+} from "../../types";
 
 const WEEK_LETTERS = ["D", "S", "T", "Q", "Q", "S", "S"];
-const IDX_TO_DAY = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
 
 interface Props {
 	sessions: WorkoutSession[];
-	workoutDayCodes: string[]; // dias que têm treino planejado
-	restDays: number;
+	missedDates: Set<string>;
+	trainingDays: Set<DayKey>;
 	loading?: boolean;
 }
 
 export function WeekOverview({
 	sessions,
-	workoutDayCodes,
-	restDays,
+	missedDates,
+	trainingDays,
 	loading,
 }: Props) {
 	const trainedDays = useMemo(() => {
@@ -26,22 +30,6 @@ export function WeekOverview({
 		);
 	}, [sessions]);
 
-	const uncompletedPastDaysCount = useMemo(() => {
-		const todayVal = new Date();
-		todayVal.setHours(0, 0, 0, 0);
-		const todayIdx = todayVal.getDay(); // 0 = DOM, 1 = SEG, ...
-
-		let count = 0;
-		for (let i = 0; i < todayIdx; i++) {
-			if (!trainedDays.has(i)) {
-				count++;
-			}
-		}
-		return count;
-	}, [trainedDays]);
-
-	const shouldPaintRed = uncompletedPastDaysCount > restDays;
-
 	const weekDays = useMemo(() => {
 		const todayVal = new Date();
 		todayVal.setHours(0, 0, 0, 0);
@@ -51,7 +39,10 @@ export function WeekOverview({
 			const isFuture = i > todayIdx;
 			const isToday = i === todayIdx;
 			const trained = trainedDays.has(i);
-			const isPlanned = workoutDayCodes.includes(IDX_TO_DAY[i]);
+			const isPlanned = trainingDays.has(JS_DAY_TO_KEY[i]);
+			const date = new Date(todayVal);
+			date.setDate(todayVal.getDate() - todayIdx + i);
+			const isMissed = missedDates.has(formatLocalDate(date));
 
 			let dotClass: string;
 
@@ -78,7 +69,7 @@ export function WeekOverview({
 				}
 			} else {
 				// Past days
-				if (shouldPaintRed) {
+				if (isMissed) {
 					dotClass =
 						"w-[26px] h-[26px] rounded-full border-2 border-[rgba(255,78,78,0.6)] bg-[rgba(255,78,78,0.15)] transition-all";
 				} else if (isPlanned) {
@@ -97,7 +88,7 @@ export function WeekOverview({
 				dotClass,
 			};
 		});
-	}, [trainedDays, shouldPaintRed, workoutDayCodes]);
+	}, [trainedDays, missedDates, trainingDays]);
 
 	if (loading) {
 		const skeletonDays = [

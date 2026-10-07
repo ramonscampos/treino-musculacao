@@ -28,10 +28,6 @@ export function todayKey(): DayKey {
 	return JS_DAY_TO_KEY[new Date().getDay()];
 }
 
-export function todayStr(): string {
-	return formatLocalDate(new Date());
-}
-
 function getWeekRange() {
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);

@@ -22,6 +22,7 @@ import type { WorkoutPlan } from "../../types";
 import { DAY_LABELS } from "../../types";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { CreatePlanModal } from "../WorkoutView/CreatePlanModal";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	programId: number;
@@ -224,6 +225,7 @@ export function PlanList({
 	onSelectPlan,
 	onChanged,
 }: Props) {
+	const { showToast } = useToast();
 	const [creating, setCreating] = useState(false);
 	const [deletingPlan, setDeletingPlan] = useState<WorkoutPlan | null>(null);
 	const [activeId, setActiveId] = useState<number | null>(null);
@@ -365,9 +367,15 @@ export function PlanList({
 				description={`Tem certeza que deseja excluir o treino "${deletingPlan?.name}"? Isso removerá permanentemente todos os exercícios vinculados a ele.`}
 				onConfirm={async () => {
 					if (!deletingPlan) return;
-					await deletePlan(deletingPlan.id);
+					const target = deletingPlan;
 					setDeletingPlan(null);
-					onChanged();
+					try {
+						await deletePlan(target.id);
+						onChanged();
+					} catch (err) {
+						console.error("Erro ao excluir:", err);
+						showToast("Não foi possível excluir o treino");
+					}
 				}}
 				onCancel={() => setDeletingPlan(null)}
 			/>

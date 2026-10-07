@@ -8,7 +8,7 @@ interface Props {
 export function NoPlansFallback({
 	onCreateClick,
 	title = "Nenhum treino cadastrado",
-	description = "Você precisa criar um plano de treinos (ex: Peito + Tríceps) para começar a utilizar o aplicativo e registrar sua evolução de cargas.",
+	description = "Você precisa criar um plano de treinos (ex: Peito + Tríceps) para começar a utilizar o aplicativo e acompanhar seus treinos.",
 	buttonText = "Criar Meu Primeiro Treino",
 }: Props) {
 	return (

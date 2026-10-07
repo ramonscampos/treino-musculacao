@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLoadLogs } from "../../hooks/useLoadLogs";
 import { todayKey, useWorkoutPlan } from "../../hooks/useWorkoutPlan";
-import { getLastLoad } from "../../lib/queries/loads";
+import { buildSchedule, calcStreak, getMissedDates } from "../../lib/attendance";
+import { getPlanLoads, saveLoad } from "../../lib/queries/loads";
 import {
 	deleteSession,
 	getSessionsInRange,
 	upsertSession,
 } from "../../lib/queries/sessions";
 import {
+	DAY_FULL_LABELS,
 	DAY_ORDER,
 	type DayKey,
 	formatLocalDate,
-	JS_DAY_TO_KEY,
 	type PlanExercise,
 	type User,
 	type WorkoutSession,
@@ -21,6 +21,8 @@ import { LoadModal } from "../LoadModal/LoadModal";
 import { ConfigScreen } from "../manage/ConfigScreen";
 import { ManageScreen } from "../manage/ManageScreen";
 import { ProgramModal } from "../manage/ProgramModal";
+import { Avatar } from "../ui/Avatar";
+import { useToast } from "../ui/Toast";
 import { CreatePlanModal } from "./CreatePlanModal";
 import { DayTabs } from "./DayTabs";
 import { ExerciseCard } from "./ExerciseCard";
@@ -69,57 +71,9 @@ function getTargetDate(dayKey: DayKey): string {
 	return formatLocalDate(targetDate);
 }
 
-function calcStreak(
-	sessions: WorkoutSession[],
-	workoutDayCodes: string[] = [],
-): number {
-	if (!sessions.length) return 0;
-
-	const performedDates = new Set(sessions.map((s) => s.performedOn));
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-
-	let oldestDateStr = sessions[0].performedOn;
-	for (const s of sessions) {
-		if (s.performedOn < oldestDateStr) {
-			oldestDateStr = s.performedOn;
-		}
-	}
-	const oldestDate = new Date(`${oldestDateStr}T00:00:00`);
-	oldestDate.setHours(0, 0, 0, 0);
-
-	const plannedDays =
-		workoutDayCodes.length > 0
-			? workoutDayCodes
-			: ["SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
-
-	let streak = 0;
-	const currentDate = new Date(today);
-
-	while (currentDate >= oldestDate) {
-		const dateStr = formatLocalDate(currentDate);
-		const dayOfWeekKey = JS_DAY_TO_KEY[currentDate.getDay()];
-		const isPlanned = plannedDays.includes(dayOfWeekKey);
-		const workedOut = performedDates.has(dateStr);
-
-		const isToday = currentDate.getTime() === today.getTime();
-
-		if (workedOut) {
-			streak++;
-		} else {
-			if (!isToday && isPlanned) {
-				break;
-			}
-		}
-
-		currentDate.setDate(currentDate.getDate() - 1);
-	}
-
-	return streak;
-}
-
 export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 	const userId = user.id;
+	const { showToast } = useToast();
 	const [refreshTrigger, setRefreshTrigger] = useState(0);
 	const {
 		programs,
@@ -162,78 +116,122 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 	>("home");
 	const [createPlanOpen, setCreatePlanOpen] = useState(false);
 	const [createProgramOpen, setCreateProgramOpen] = useState(false);
-	const [streak, setStreak] = useState(0);
-	const [isTogglingSession, setIsTogglingSession] = useState(false);
-	const { saveLoad, getLastLoggedLoad } = useLoadLogs(userId);
+	const [allSessions, setAllSessions] = useState<WorkoutSession[]>([]);
 
 	useEffect(() => {
-		if (exercises.length === 0) return;
+		const planIds = [...new Set(exercises.map((ex) => ex.planId))];
+		if (planIds.length === 0) return;
+		let active = true;
 		Promise.all(
-			exercises.map((ex) =>
-				getLastLoad(userId, ex.exerciseId, ex.planId).then((log) => ({
-					key: `${ex.planId}_${ex.exerciseId}`,
-					exerciseId: ex.exerciseId,
-					weights: log?.sets.map((s) => s.weight) ?? [],
-				})),
+			planIds.map((planId) =>
+				getPlanLoads(planId).then((loads) => ({ planId, loads })),
 			),
-		).then((results) => {
-			const map: Record<string, number[]> = {};
-			results.forEach((r) => {
-				map[r.key] = r.weights;
-				map[r.exerciseId] = r.weights;
+		)
+			.then((results) => {
+				if (!active) return;
+				const map: Record<string, number[]> = {};
+				for (const { planId, loads } of results) {
+					for (const [exerciseId, weights] of Object.entries(loads)) {
+						map[`${planId}_${exerciseId}`] = weights;
+					}
+				}
+				setWeightsMap(map);
+			})
+			.catch((err) => {
+				console.error("Erro ao carregar cargas:", err);
+				showToast("Não foi possível carregar suas cargas");
 			});
-			setWeightsMap(map);
-		});
-	}, [userId, exercises]);
+		return () => {
+			active = false;
+		};
+	}, [exercises, showToast]);
 
 	const loadStreak = useCallback(() => {
-		getSessionsInRange(userId, "2000-01-01", "2099-12-31").then((all) => {
-			setStreak(
-				calcStreak(
-					all,
-					plans.map((p) => p.suggestedDay),
-				),
-			);
-		});
-	}, [userId, plans]);
+		getSessionsInRange(userId, "2000-01-01", "2099-12-31").then(setAllSessions);
+	}, [userId]);
+
+	const schedule = useMemo(
+		() => buildSchedule(plans, activeProgram?.restDays),
+		[plans, activeProgram?.restDays],
+	);
+
+	const streak = useMemo(
+		() => calcStreak(allSessions, schedule),
+		[allSessions, schedule],
+	);
+
+	const weekMissedDates = useMemo(() => {
+		const today = new Date();
+		const sunday = new Date(today);
+		sunday.setDate(today.getDate() - today.getDay());
+		return getMissedDates(
+			allSessions,
+			schedule,
+			formatLocalDate(sunday),
+			formatLocalDate(today),
+		);
+	}, [allSessions, schedule]);
 
 	useEffect(() => {
 		loadStreak();
 	}, [loadStreak]);
 
+	const isFutureDay = getTargetDate(selectedDay) > formatLocalDate(new Date());
+
 	async function handleToggleDone() {
 		if (!activePlan) return;
 		const dateStr = getTargetDate(selectedDay);
-		setIsTogglingSession(true);
+		const planId = activePlan.id;
+		const wasDone = sessionDone;
+
+		const applyLocal = (isDone: boolean) => {
+			toggleSession(planId, dateStr, isDone);
+			setAllSessions((prev) => {
+				const rest = prev.filter((s) => s.performedOn !== dateStr);
+				return isDone
+					? [...rest, { id: -Date.now(), userId, planId, performedOn: dateStr }]
+					: rest;
+			});
+		};
+
+		applyLocal(!wasDone);
 		try {
-			if (sessionDone) {
-				await deleteSession(userId, dateStr);
-				toggleSession(activePlan.id, dateStr, false);
-			} else {
-				await upsertSession(userId, activePlan.id, dateStr);
-				toggleSession(activePlan.id, dateStr, true);
-			}
-			loadStreak();
+			if (wasDone) await deleteSession(userId, dateStr);
+			else await upsertSession(userId, planId, dateStr);
 		} catch (error) {
-			console.error("Error toggling session status:", error);
-		} finally {
-			setIsTogglingSession(false);
+			console.error("Erro ao alterar conclusão do treino:", error);
+			applyLocal(wasDone);
+			showToast(
+				wasDone
+					? "Não foi possível desfazer a conclusão do treino"
+					: "Não foi possível concluir o treino",
+			);
 		}
 	}
 
-	function handleLoadSaved(
+	async function handleSaveLoad(
+		planId: number,
 		exerciseId: number,
 		weights: number[],
-		planId?: number,
 	) {
-		setWeightsMap((prev) => {
-			const map = { ...prev };
-			if (planId) {
-				map[`${planId}_${exerciseId}`] = weights;
-			}
-			map[exerciseId] = weights;
-			return map;
-		});
+		const key = `${planId}_${exerciseId}`;
+		const previous = weightsMap[key];
+		const setWeights = (value: number[] | undefined) =>
+			setWeightsMap((prev) => {
+				const next = { ...prev };
+				if (value) next[key] = value;
+				else delete next[key];
+				return next;
+			});
+
+		setWeights(weights);
+		try {
+			await saveLoad(planId, exerciseId, weights);
+		} catch (err) {
+			console.error("Erro ao salvar carga:", err);
+			setWeights(previous);
+			showToast("Não foi possível salvar a carga");
+		}
 	}
 
 	const brandName = "Iron Protocol";
@@ -252,26 +250,11 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 					{/* Header */}
 					<header className="flex items-center justify-between px-4 sm:px-6 pt-[calc(1.5rem+var(--safe-top))] pb-2 mb-4">
 						<div className="flex items-center gap-3 min-w-0">
-							{user.avatarUrl ? (
-								<img
-									src={user.avatarUrl}
-									alt={user.name}
-									className="w-11 h-11 rounded-full object-cover border shrink-0"
-									style={{ borderColor: "var(--accent-mute)" }}
-								/>
-							) : (
-								<div
-									className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[1.1rem] border shrink-0"
-									style={{
-										borderColor: "var(--accent-mute)",
-										background: "var(--accent-soft)",
-										color: "var(--accent-color)",
-										fontFamily: "Outfit",
-									}}
-								>
-									{user.name.charAt(0).toUpperCase()}
-								</div>
-							)}
+							<Avatar
+								name={user.name}
+								url={user.avatarUrl}
+								className="w-11 h-11 text-[1.1rem] shrink-0"
+							/>
 							<div className="min-w-0">
 								<div
 									className="text-[0.7rem] uppercase tracking-[0.2rem] font-bold truncate"
@@ -312,8 +295,8 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 						<div className="mb-5 px-4 sm:px-6">
 							<WeekOverview
 								sessions={weekSessions}
-								workoutDayCodes={plans.map((p) => p.suggestedDay)}
-								restDays={activeProgram?.restDays ?? 0}
+								missedDates={weekMissedDates}
+								trainingDays={schedule.trainingDays}
 								loading={initialLoading}
 							/>
 						</div>
@@ -415,9 +398,9 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 										className="text-[0.9rem] leading-relaxed"
 										style={{ color: "var(--text-secondary)" }}
 									>
-										Hoje é seu dia de descanso configurado para este programa.
-										Aproveite para recuperar as energias e regenerar as fibras
-										musculares!
+										{selectedDay === todayKey()
+											? "Hoje é seu dia de descanso. Aproveite para recuperar as energias e regenerar as fibras musculares!"
+											: `${DAY_FULL_LABELS[selectedDay]} é seu dia de descanso neste programa. Nesse dia, aproveite para recuperar as energias e regenerar as fibras musculares!`}
 									</p>
 								</div>
 								{plans.length > 1 && (
@@ -585,7 +568,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 											</button>
 										)}
 									</h2>
-									{exercises.length > 0 && (
+									{exercises.length > 0 && !isFutureDay && (
 										<div className="flex items-center gap-2 shrink-0 self-center">
 											{sessionDone ? (
 												<>
@@ -602,8 +585,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 													<button
 														type="button"
 														onClick={handleToggleDone}
-														disabled={isTogglingSession}
-														className={`w-9 h-9 flex items-center justify-center rounded-[0.65rem] transition-all active:scale-[0.93] shrink-0 cursor-pointer ${isTogglingSession ? "opacity-60 cursor-not-allowed" : ""}`}
+														className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] transition-all active:scale-[0.93] shrink-0 cursor-pointer"
 														style={{
 															border: "1.5px solid rgba(255,78,78,0.5)",
 															background: "rgba(255,78,78,0.08)",
@@ -612,9 +594,6 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 														aria-label="Desfazer conclusão"
 													>
 														<svg
-															className={
-																isTogglingSession ? "animate-spin" : ""
-															}
 															width="16"
 															height="16"
 															viewBox="0 0 24 24"
@@ -634,8 +613,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 												<button
 													type="button"
 													onClick={handleToggleDone}
-													disabled={isTogglingSession}
-													className={`w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.2rem] font-bold transition-all active:bg-(--accent-color) active:text-black active:scale-[0.97] shrink-0 cursor-pointer ${isTogglingSession ? "opacity-60 cursor-not-allowed" : ""}`}
+													className="w-9 h-9 flex items-center justify-center rounded-[0.65rem] text-[1.2rem] font-bold transition-all active:bg-(--accent-color) active:text-black active:scale-[0.97] shrink-0 cursor-pointer"
 													style={{
 														border: "1.5px solid var(--accent-color)",
 														background: "transparent",
@@ -644,24 +622,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 													}}
 													aria-label="Concluir treino"
 												>
-													{isTogglingSession ? (
-														<svg
-															className="animate-spin"
-															width="16"
-															height="16"
-															viewBox="0 0 24 24"
-															fill="none"
-															stroke="currentColor"
-															strokeWidth="2.5"
-															strokeLinecap="round"
-															strokeLinejoin="round"
-														>
-															<title>Carregando</title>
-															<path d="M21 12a9 9 0 1 1-6.219-8.56" />
-														</svg>
-													) : (
-														"+"
-													)}
+													+
 												</button>
 											)}
 										</div>
@@ -673,10 +634,8 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 										<ExerciseCard
 											key={ex.id}
 											exercise={ex}
-											lastWeights={
-												weightsMap[`${ex.planId}_${ex.exerciseId}`] ??
-												weightsMap[ex.exerciseId] ??
-												[]
+											currentWeights={
+												weightsMap[`${ex.planId}_${ex.exerciseId}`] ?? []
 											}
 											onOpenLoad={() => setLoadModalEx(ex)}
 											supersetTargetName={
@@ -713,7 +672,7 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 					userId={userId}
 					onSessionsChanged={triggerRefresh}
 					restDays={activeProgram?.restDays}
-					workoutDayCodes={plans.map((p) => p.suggestedDay)}
+					plans={plans}
 				/>
 			)}
 
@@ -879,9 +838,13 @@ export function WorkoutView({ user, updateThemeColor, signOut }: Props) {
 			<LoadModal
 				exercise={loadModalEx}
 				onClose={() => setLoadModalEx(null)}
-				onSaved={handleLoadSaved}
-				getLastLoad={getLastLoggedLoad}
-				saveLoad={saveLoad}
+				currentWeights={
+					loadModalEx
+						? (weightsMap[`${loadModalEx.planId}_${loadModalEx.exerciseId}`] ??
+							[])
+						: []
+				}
+				onSave={handleSaveLoad}
 			/>
 			<CreatePlanModal
 				isOpen={createPlanOpen}

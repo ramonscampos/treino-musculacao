@@ -1,30 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 import type { PlanExercise } from "../../types";
 
 interface Props {
 	exercise: PlanExercise | null;
+	currentWeights: number[];
 	onClose: () => void;
-	onSaved: (exerciseId: number, weights: number[], planId?: number) => void;
-	getLastLoad: (
-		exerciseId: number,
-		planId?: number,
-	) => Promise<{ sets: { weight: number }[] } | null>;
-	saveLoad: (
-		exerciseId: number,
-		weights: number[],
-		planId?: number,
-	) => Promise<void>;
+	onSave: (planId: number, exerciseId: number, weights: number[]) => void;
 }
 
 export function LoadModal({
 	exercise,
+	currentWeights,
 	onClose,
-	onSaved,
-	getLastLoad,
-	saveLoad,
+	onSave,
 }: Props) {
 	const [weights, setWeights] = useState<string[]>([]);
-	const [saving, setSaving] = useState(false);
 	const [open, setOpen] = useState(false);
 	const inputRefs = useRef<HTMLInputElement[]>([]);
 
@@ -56,11 +47,18 @@ export function LoadModal({
 		return `Série ${i + 1}`;
 	}
 
+	function getInitialWeights(): string[] {
+		if (currentWeights.length === 0) return Array(inputCount).fill("");
+		if (isFixed) return [String(currentWeights[0])];
+		return Array.from({ length: inputCount }, (_, i) =>
+			String(currentWeights[i] ?? currentWeights[currentWeights.length - 1]),
+		);
+	}
+
 	const [prevExerciseId, setPrevExerciseId] = useState<number | null | undefined>(exercise?.id);
 	if (exercise?.id !== prevExerciseId) {
 		setPrevExerciseId(exercise?.id);
-		setWeights(exercise ? Array(inputCount).fill("") : []);
-		setSaving(false);
+		setWeights(exercise ? getInitialWeights() : []);
 	}
 
 	useEffect(() => {
@@ -71,81 +69,44 @@ export function LoadModal({
 				if (active) setOpen(true);
 			}, 0);
 
-			getLastLoad(exercise.exerciseId, exercise.planId)
-				.then((log) => {
-					if (!active) return;
-					if (log && log.sets.length > 0) {
-						if (isFixed) {
-							setWeights([String(log.sets[0]?.weight ?? "")]);
-						} else {
-							setWeights(
-								Array.from({ length: inputCount }, (_, i) =>
-									String(
-										log.sets[i]?.weight ??
-											log.sets[log.sets.length - 1]?.weight ??
-											"",
-									),
-								),
-							);
-						}
-					} else {
-						setWeights(Array(inputCount).fill(""));
-					}
-					setTimeout(() => {
-						if (!active) return;
-						const firstEmpty = inputRefs.current
-							.slice(0, inputCount)
-							.find((inp) => inp && !inp.value);
-						if (firstEmpty) firstEmpty.focus();
-					}, 350);
-				})
-				.catch((err) => {
-					console.error("Erro ao obter última carga:", err);
-					if (active) {
-						setWeights(Array(inputCount).fill(""));
-					}
-				});
+			const focusTimer = setTimeout(() => {
+				if (!active) return;
+				const firstEmpty = inputRefs.current
+					.slice(0, inputCount)
+					.find((inp) => inp && !inp.value);
+				if (firstEmpty) firstEmpty.focus({ preventScroll: true });
+			}, 350);
 
 			return () => {
 				active = false;
 				clearTimeout(timer);
+				clearTimeout(focusTimer);
 			};
 		}
 
 		// Cleanup when closed
 		const timer = setTimeout(() => setOpen(false), 0);
 		return () => clearTimeout(timer);
-	}, [exercise, getLastLoad, inputCount, isFixed]);
+	}, [exercise, inputCount]);
 
-	useEffect(() => {
-		document.body.style.overflow = open ? "hidden" : "";
-		return () => {
-			document.body.style.overflow = "";
-		};
-	}, [open]);
+	useScrollLock(open);
 
-	async function handleSave() {
+	function handleSave() {
 		if (!exercise) return;
 		const setCount = exercise.sets ?? 3;
 		const parsed = isFixed
 			? Array(setCount).fill(parseFloat(weights[0]) || 0)
 			: weights.map((w) => parseFloat(w) || 0);
-		setSaving(true);
-		try {
-			await saveLoad(exercise.exerciseId, parsed, exercise.planId);
-			onSaved(exercise.exerciseId, parsed, exercise.planId);
-		} catch (err) {
-			console.error("Erro ao salvar carga:", err);
-		} finally {
-			setSaving(false);
-			handleClose();
-		}
+		onSave(exercise.planId, exercise.exerciseId, parsed);
+		handleClose();
 	}
 
 	function handleClose() {
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
 		setOpen(false);
 		setWeights([]);
-		setSaving(false);
 		setTimeout(onClose, 300);
 	}
 
@@ -263,19 +224,14 @@ export function LoadModal({
 						<button
 							type="button"
 							onClick={handleSave}
-							disabled={saving}
-							className="w-full py-[0.85rem] font-bold text-[1rem] rounded-2xl transition-all active:scale-[0.98] disabled:opacity-60"
+							className="w-full py-[0.85rem] font-bold text-[1rem] rounded-2xl transition-all active:scale-[0.98]"
 							style={{
 								background: "var(--accent-color)",
 								color: "#000",
 								fontFamily: "Outfit",
 							}}
 						>
-							{saving
-								? "Salvando..."
-								: inputCount === 1
-									? "Salvar Carga"
-									: "Salvar Cargas"}
+							{inputCount === 1 ? "Salvar Carga" : "Salvar Cargas"}
 						</button>
 					</>
 				)}

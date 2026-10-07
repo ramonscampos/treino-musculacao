@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 interface Props {
 	open: boolean;
@@ -35,12 +36,7 @@ export function BottomSheet({ open, onClose, children, title }: Props) {
 		return () => clearTimeout(timer);
 	}, [open]);
 
-	useEffect(() => {
-		document.body.style.overflow = open ? "hidden" : "";
-		return () => {
-			document.body.style.overflow = "";
-		};
-	}, [open]);
+	useScrollLock(open);
 
 	if (!shouldRender) return null;
 

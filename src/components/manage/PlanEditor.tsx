@@ -7,8 +7,10 @@ import {
 } from "../../lib/queries/manage";
 import { getPlanExercises } from "../../lib/queries/plans";
 import type { PlanExercise, WorkoutPlan } from "../../types";
+import { ConfirmModal } from "../ui/ConfirmModal";
 import { Modal } from "../ui/Modal";
 import { Select } from "../ui/Select";
+import { useToast } from "../ui/Toast";
 import { ExercisePicker } from "./ExercisePicker";
 import { SortableExerciseList } from "./SortableExerciseList";
 
@@ -80,7 +82,10 @@ function SkeletonExerciseRow() {
 }
 
 export function PlanEditor({ plan, onChanged }: Props) {
+	const { showToast } = useToast();
 	const [exercises, setExercises] = useState<PlanExercise[]>([]);
+	const [removingExercise, setRemovingExercise] =
+		useState<PlanExercise | null>(null);
 	const [showPicker, setShowPicker] = useState(false);
 	const [loading, setLoading] = useState(true);
 
@@ -111,8 +116,12 @@ export function PlanEditor({ plan, onChanged }: Props) {
 	useEffect(() => {
 		getPlanExercises(plan.id)
 			.then(setExercises)
+			.catch((err) => {
+				console.error("Erro ao carregar exercícios do treino:", err);
+				showToast("Não foi possível carregar os exercícios do treino");
+			})
 			.finally(() => setLoading(false));
-	}, [plan.id]);
+	}, [plan.id, showToast]);
 
 	const [prevConfigState, setPrevConfigState] = useState({
 		configuring: configuringExercise,
@@ -220,23 +229,26 @@ export function PlanEditor({ plan, onChanged }: Props) {
 			extraVal = modalPerSeriesReps.filter(Boolean).join("/") || undefined;
 		}
 
-		await addExerciseToPlan(plan.id, configuringExercise.id, {
-			sets: setsVal,
-			repsMin: repsMinVal,
-			repsMax: repsMaxVal,
-			restSeconds: restVal,
-			extra: extraVal,
-			note: modalNote || undefined,
-			sortOrder: exercises.length,
-			muscleFocus: modalMuscleFocus || undefined,
-			executionCues: cuesVal,
-			isSupersetWith: supersetVal,
-		});
-
-		setConfiguringExercise(null);
-		const updated = await getPlanExercises(plan.id);
-		setExercises(updated);
-		onChanged();
+		try {
+			await addExerciseToPlan(plan.id, configuringExercise.id, {
+				sets: setsVal,
+				repsMin: repsMinVal,
+				repsMax: repsMaxVal,
+				restSeconds: restVal,
+				extra: extraVal,
+				note: modalNote || undefined,
+				sortOrder: exercises.length,
+				muscleFocus: modalMuscleFocus || undefined,
+				executionCues: cuesVal,
+				isSupersetWith: supersetVal,
+			});
+			setConfiguringExercise(null);
+			setExercises(await getPlanExercises(plan.id));
+			onChanged();
+		} catch (err) {
+			console.error("Erro ao adicionar exercício:", err);
+			showToast("Não foi possível adicionar o exercício");
+		}
 	}
 
 	async function handleEditExerciseSubmit() {
@@ -266,28 +278,39 @@ export function PlanEditor({ plan, onChanged }: Props) {
 			extraVal = modalPerSeriesReps.filter(Boolean).join("/") || null;
 		}
 
-		await updatePlanExercise(editingPlanExercise.id, {
-			sets: setsVal,
-			repsMin: repsMinVal,
-			repsMax: repsMaxVal,
-			restSeconds: restVal,
-			extra: extraVal,
-			note: modalNote || null,
-			muscleFocus: modalMuscleFocus || null,
-			executionCues: cuesVal,
-			isSupersetWith: supersetVal,
-		});
-
-		setEditingPlanExercise(null);
-		const updated = await getPlanExercises(plan.id);
-		setExercises(updated);
-		onChanged();
+		try {
+			await updatePlanExercise(editingPlanExercise.id, {
+				sets: setsVal,
+				repsMin: repsMinVal,
+				repsMax: repsMaxVal,
+				restSeconds: restVal,
+				extra: extraVal,
+				note: modalNote || null,
+				muscleFocus: modalMuscleFocus || null,
+				executionCues: cuesVal,
+				isSupersetWith: supersetVal,
+			});
+			setEditingPlanExercise(null);
+			setExercises(await getPlanExercises(plan.id));
+			onChanged();
+		} catch (err) {
+			console.error("Erro ao atualizar exercício:", err);
+			showToast("Não foi possível salvar as alterações do exercício");
+		}
 	}
 
-	async function handleRemoveExercise(peId: number) {
-		await removePlanExercise(peId);
-		setExercises((prev) => prev.filter((e) => e.id !== peId));
-		onChanged();
+	async function handleConfirmRemove() {
+		if (!removingExercise) return;
+		const target = removingExercise;
+		setRemovingExercise(null);
+		try {
+			await removePlanExercise(target.id);
+			setExercises((prev) => prev.filter((e) => e.id !== target.id));
+			onChanged();
+		} catch (err) {
+			console.error("Erro ao remover exercício do treino:", err);
+			showToast("Não foi possível remover o exercício");
+		}
 	}
 
 	const addSupersetOptions = [
@@ -324,7 +347,9 @@ export function PlanEditor({ plan, onChanged }: Props) {
 					exercises={exercises}
 					onReorder={setExercises}
 					onEdit={handleStartEdit}
-					onRemove={handleRemoveExercise}
+					onRemove={(peId) =>
+						setRemovingExercise(exercises.find((e) => e.id === peId) ?? null)
+					}
 				/>
 			)}
 
@@ -986,6 +1011,15 @@ export function PlanEditor({ plan, onChanged }: Props) {
 					</div>
 				</Modal>
 			)}
+
+			<ConfirmModal
+				isOpen={removingExercise !== null}
+				title="Remover exercício?"
+				description={`"${removingExercise?.exerciseName}" será removido deste treino. O exercício continua disponível na sua biblioteca.`}
+				confirmText="Remover"
+				onConfirm={handleConfirmRemove}
+				onCancel={() => setRemovingExercise(null)}
+			/>
 		</div>
 	);
 }

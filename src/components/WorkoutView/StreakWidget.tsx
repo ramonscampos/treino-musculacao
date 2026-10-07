@@ -28,7 +28,7 @@ export function StreakWidget({ streak, loading }: Props) {
 				{streak}
 			</span>
 			<span className="text-[0.6rem] uppercase tracking-[0.1rem] text-(--text-muted) font-semibold text-center leading-[1.3]">
-				dias
+				{streak === 1 ? "dia" : "dias"}
 			</span>
 		</div>
 	);

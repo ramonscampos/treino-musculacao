@@ -3,6 +3,7 @@ import { deleteProgram } from "../../lib/queries/manage";
 import type { Program } from "../../types";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { ProgramModal } from "./ProgramModal";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	programs: Program[];
@@ -21,6 +22,7 @@ export function ProgramList({
 	onSelectProgram,
 	onChanged,
 }: Props) {
+	const { showToast } = useToast();
 	const [creating, setCreating] = useState(false);
 	const [editingProgram, setEditingProgram] = useState<Program | null>(null);
 	const [deletingProgram, setDeletingProgram] = useState<Program | null>(null);
@@ -295,9 +297,15 @@ export function ProgramList({
 				description={`Tem certeza que deseja excluir o programa "${deletingProgram?.name}"? Isso removerá permanentemente todos os treinos e exercícios vinculados a ele.`}
 				onConfirm={async () => {
 					if (!deletingProgram) return;
-					await deleteProgram(deletingProgram.id);
+					const target = deletingProgram;
 					setDeletingProgram(null);
-					onChanged();
+					try {
+						await deleteProgram(target.id);
+						onChanged();
+					} catch (err) {
+						console.error("Erro ao excluir:", err);
+						showToast("Não foi possível excluir o programa");
+					}
 				}}
 				onCancel={() => setDeletingProgram(null)}
 			/>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createProgram, updateProgram } from "../../lib/queries/manage";
 import type { Program } from "../../types";
 import { Modal } from "../ui/Modal";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	isOpen: boolean;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function ProgramModal({ isOpen, onClose, onChanged, program }: Props) {
+	const { showToast } = useToast();
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
 	const [restDays, setRestDays] = useState<number>(0);
@@ -36,7 +38,7 @@ export function ProgramModal({ isOpen, onClose, onChanged, program }: Props) {
 	useEffect(() => {
 		if (isOpen) {
 			const timer = setTimeout(() => {
-				inputRef.current?.focus();
+				inputRef.current?.focus({ preventScroll: true });
 			}, 320); // wait for slide-up animation
 			return () => clearTimeout(timer);
 		}
@@ -64,6 +66,7 @@ export function ProgramModal({ isOpen, onClose, onChanged, program }: Props) {
 			onClose();
 		} catch (err) {
 			console.error("Erro ao salvar programa:", err);
+			showToast("Não foi possível salvar o programa");
 		} finally {
 			setSaving(false);
 		}

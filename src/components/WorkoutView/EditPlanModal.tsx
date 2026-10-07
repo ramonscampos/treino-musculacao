@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { updatePlan } from "../../lib/queries/manage";
 import { DAY_LABELS, type DayKey } from "../../types";
 import { Modal } from "../ui/Modal";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	isOpen: boolean;
@@ -34,6 +35,7 @@ export function EditPlanModal({
 	onClose,
 	onChanged,
 }: Props) {
+	const { showToast } = useToast();
 	const [name, setName] = useState(plan.name);
 	const [day, setDay] = useState<DayKey>(plan.suggestedDay);
 	const [saving, setSaving] = useState(false);
@@ -59,7 +61,7 @@ export function EditPlanModal({
 		if (isOpen) {
 			if (!isRestDay) {
 				const timer = setTimeout(() => {
-					inputRef.current?.focus();
+					inputRef.current?.focus({ preventScroll: true });
 				}, 320); // wait for slide-up animation
 				return () => clearTimeout(timer);
 			}
@@ -80,6 +82,7 @@ export function EditPlanModal({
 			onClose();
 		} catch (err) {
 			console.error("Erro ao salvar treino:", err);
+			showToast("Não foi possível salvar o treino");
 		} finally {
 			setSaving(false);
 		}

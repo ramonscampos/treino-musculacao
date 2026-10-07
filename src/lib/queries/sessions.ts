@@ -1,4 +1,5 @@
 import type { WorkoutSession } from "../../types";
+import { cached, peekCached } from "../queryCache";
 import { supabase } from "../supabase";
 
 export async function getSessionForDate(
@@ -38,8 +39,29 @@ export async function upsertSession(
 	if (error) throw error;
 }
 
-export async function getSessionsInRange(
-	_userId: string,
+function sessionsKey(userId: string, from: string, to: string) {
+	return `sessions:${userId}:${from}:${to}`;
+}
+
+export function peekSessionsInRange(
+	userId: string,
+	from: string,
+	to: string,
+): WorkoutSession[] | undefined {
+	return peekCached(sessionsKey(userId, from, to));
+}
+
+export function getSessionsInRange(
+	userId: string,
+	from: string,
+	to: string,
+): Promise<WorkoutSession[]> {
+	return cached(sessionsKey(userId, from, to), () =>
+		fetchSessionsInRange(from, to),
+	);
+}
+
+async function fetchSessionsInRange(
 	from: string,
 	to: string,
 ): Promise<WorkoutSession[]> {

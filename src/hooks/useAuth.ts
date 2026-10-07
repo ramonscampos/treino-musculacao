@@ -36,76 +36,79 @@ async function fetchOrCreateProfile(sessionUser: SupabaseUser): Promise<User> {
 			avatarUrl,
 		};
 	} catch {
-		return {
-			id: sessionUser.id,
-			name,
-			themeColor: "green",
-			avatarUrl,
-		};
+		return fallbackUser(sessionUser);
 	}
+}
+
+function fallbackUser(sessionUser: SupabaseUser): User {
+	const meta = sessionUser.user_metadata;
+	return {
+		id: sessionUser.id,
+		name:
+			(meta.full_name as string | undefined) ??
+			(meta.name as string | undefined) ??
+			"Usuário",
+		themeColor: "green",
+		avatarUrl:
+			(meta.avatar_url as string | undefined) ??
+			(meta.picture as string | undefined),
+	};
+}
+
+function consumeOAuthError(): string | null {
+	const url = new URL(window.location.href);
+	const errorDesc = url.searchParams.get("error_description");
+	const errorCode = url.searchParams.get("error_code");
+	if (!errorDesc && !errorCode) return null;
+	url.searchParams.delete("error");
+	url.searchParams.delete("error_code");
+	url.searchParams.delete("error_description");
+	window.history.replaceState({}, document.title, url.toString());
+	return decodeOAuthError(errorDesc, errorCode);
 }
 
 export function useAuth() {
 	const [session, setSession] = useState<Session | null>(null);
-	const [user, setUser] = useState<User | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const [sessionUser, setSessionUser] = useState<SupabaseUser | null>(null);
+	const [authReady, setAuthReady] = useState(false);
+	const [profile, setProfile] = useState<User | null>(null);
+	const [error, setError] = useState<string | null>(() => consumeOAuthError());
 
 	useEffect(() => {
-		async function init() {
-			// Check for OAuth error params in URL first
-			const url = new URL(window.location.href);
-			const errorDesc = url.searchParams.get("error_description");
-			const errorCode = url.searchParams.get("error_code");
-			if (errorDesc || errorCode) {
-				setError(decodeOAuthError(errorDesc, errorCode));
-				// Clean error params from URL
-				url.searchParams.delete("error");
-				url.searchParams.delete("error_code");
-				url.searchParams.delete("error_description");
-				window.history.replaceState({}, document.title, url.toString());
-				setLoading(false);
-				return;
-			}
-
-			// Supabase v2 handles hash tokens automatically in getSession,
-			// but onAuthStateChange may not fire on initial load. We poll once
-			// after a short delay to catch any session established by the OAuth
-			// redirect callback that may have raced with our first getSession call.
-			const { data } = await supabase.auth.getSession();
-			if (data.session) {
-				setSession(data.session);
-				const mappedUser = await fetchOrCreateProfile(data.session.user);
-				setUser(mappedUser);
-				setLoading(false);
-				return;
-			}
-			// If no session yet, wait a tick for the hash parser to finish
-			await new Promise((r) => setTimeout(r, 300));
-			const { data: retry } = await supabase.auth.getSession();
-			if (retry.session) {
-				setSession(retry.session);
-				const mappedUser = await fetchOrCreateProfile(retry.session.user);
-				setUser(mappedUser);
-			}
-			setLoading(false);
-		}
-		init();
-
+		// Keep this callback synchronous: supabase-js awaits subscribers while
+		// initializing, and any Supabase query awaited here waits for that same
+		// initialization, deadlocking the app on a blank screen.
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange(async (_event, session) => {
-			setSession(session);
-			if (session) {
-				const mappedUser = await fetchOrCreateProfile(session.user);
-				setUser(mappedUser);
-			} else {
-				setUser(null);
-			}
+		} = supabase.auth.onAuthStateChange((_event, nextSession) => {
+			setSession(nextSession);
+			setSessionUser((prev) =>
+				prev?.id === nextSession?.user.id ? prev : (nextSession?.user ?? null),
+			);
+			setAuthReady(true);
 		});
 
 		return () => subscription.unsubscribe();
 	}, []);
+
+	useEffect(() => {
+		if (!sessionUser) return;
+		let active = true;
+		fetchOrCreateProfile(sessionUser)
+			.catch((err) => {
+				console.error("Erro ao carregar perfil:", err);
+				return fallbackUser(sessionUser);
+			})
+			.then((mappedUser) => {
+				if (active) setProfile(mappedUser);
+			});
+		return () => {
+			active = false;
+		};
+	}, [sessionUser]);
+
+	const user = sessionUser && profile?.id === sessionUser.id ? profile : null;
+	const loading = !authReady || (!!sessionUser && !user);
 
 	async function signInWithGoogle() {
 		setError(null);
@@ -137,7 +140,7 @@ export function useAuth() {
 		if (!user) return;
 		try {
 			await updateProfileColor(user.id, color);
-			setUser((prev) => (prev ? { ...prev, themeColor: color } : null));
+			setProfile((prev) => (prev ? { ...prev, themeColor: color } : null));
 		} catch (err) {
 			console.error("Erro ao atualizar cor do tema:", err);
 		}

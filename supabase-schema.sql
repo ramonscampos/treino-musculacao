@@ -108,22 +108,14 @@ CREATE TABLE IF NOT EXISTS workout_sessions (
   UNIQUE(user_id, performed_on)
 );
 
--- Registro de cargas (um por exercício por dia por plano)
-CREATE TABLE IF NOT EXISTS load_logs (
-  id BIGSERIAL PRIMARY KEY,
+-- Carga atual (uma por exercício por plano)
+CREATE TABLE IF NOT EXISTS exercise_loads (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan_id BIGINT REFERENCES workout_plans(id) ON DELETE CASCADE,
+  plan_id BIGINT NOT NULL REFERENCES workout_plans(id) ON DELETE CASCADE,
   exercise_id BIGINT NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
-  logged_at DATE NOT NULL,
-  UNIQUE(user_id, plan_id, exercise_id, logged_at)
-);
-
--- Séries dentro do registro de cargas
-CREATE TABLE IF NOT EXISTS load_log_sets (
-  id BIGSERIAL PRIMARY KEY,
-  log_id BIGINT NOT NULL REFERENCES load_logs(id) ON DELETE CASCADE,
-  set_number INTEGER NOT NULL,
-  weight NUMERIC NOT NULL
+  weights NUMERIC[] NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, plan_id, exercise_id)
 );
 
 -- ============================================
@@ -136,8 +128,7 @@ ALTER TABLE exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workout_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plan_exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workout_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE load_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE load_log_sets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE exercise_loads ENABLE ROW LEVEL SECURITY;
 
 -- profiles
 DROP POLICY IF EXISTS "own profile" ON profiles;
@@ -169,22 +160,10 @@ DROP POLICY IF EXISTS "own sessions" ON workout_sessions;
 CREATE POLICY "own sessions" ON workout_sessions
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
--- load_logs
-DROP POLICY IF EXISTS "own load logs" ON load_logs;
-CREATE POLICY "own load logs" ON load_logs
+-- exercise_loads
+DROP POLICY IF EXISTS "own exercise loads" ON exercise_loads;
+CREATE POLICY "own exercise loads" ON exercise_loads
   FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-
--- load_log_sets (via join com load_logs)
-DROP POLICY IF EXISTS "own load sets" ON load_log_sets;
-CREATE POLICY "own load sets" ON load_log_sets FOR ALL
-  USING (EXISTS (
-    SELECT 1 FROM load_logs
-    WHERE load_logs.id = log_id AND load_logs.user_id = auth.uid()
-  ))
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM load_logs
-    WHERE load_logs.id = log_id AND load_logs.user_id = auth.uid()
-  ));
 
 -- ============================================
 -- TRIGGER: CRIAR PROFILE AUTOMATICAMENTE

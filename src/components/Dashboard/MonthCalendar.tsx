@@ -4,6 +4,7 @@ const WEEK_DAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 interface Props {
 	sessions: WorkoutSession[];
+	missedDates: Set<string>;
 	month: number;
 	year: number;
 	selectedDate: string | null;
@@ -13,6 +14,7 @@ interface Props {
 
 export function MonthCalendar({
 	sessions,
+	missedDates,
 	month,
 	year,
 	selectedDate,
@@ -23,7 +25,6 @@ export function MonthCalendar({
 	const firstDay = new Date(year, month, 1).getDay();
 	const daysInMonth = new Date(year, month + 1, 0).getDate();
 	const todayStr = formatLocalDate(new Date());
-	const actualToday = new Date();
 
 	const cells: (number | null)[] = [
 		...Array(firstDay).fill(null),
@@ -60,11 +61,9 @@ export function MonthCalendar({
 					const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 					const isDone = doneDates.has(dateStr);
 					const isToday = dateStr === todayStr;
-					const dateObj = new Date(year, month, day);
-					const isPast = dateObj < actualToday && !isToday;
-					const isSunday = dateObj.getDay() === 0;
-					const isMissed = isPast && !isDone && !isSunday;
+					const isMissed = missedDates.has(dateStr);
 					const isSelected = dateStr === selectedDate;
+					const isFuture = dateStr > todayStr;
 
 					const baseStyle: React.CSSProperties = {
 						aspectRatio: "1",
@@ -75,7 +74,7 @@ export function MonthCalendar({
 						fontWeight: 600,
 						borderRadius: "0.6rem",
 						position: "relative",
-						cursor: "pointer",
+						cursor: isFuture ? "default" : "pointer",
 						transition: "var(--transition)",
 						color: "var(--text-muted)",
 					};
@@ -94,10 +93,14 @@ export function MonthCalendar({
 						<div
 							key={cellKey}
 							style={baseStyle}
-							onClick={() => onSelectDate(isSelected ? null : dateStr)}
+							onClick={() => {
+								if (!isFuture) onSelectDate(isSelected ? null : dateStr);
+							}}
 							role="button"
 							tabIndex={-1}
+							aria-disabled={isFuture}
 							onKeyDown={(e) => {
+								if (isFuture) return;
 								if (e.key === "Enter" || e.key === " ") {
 									onSelectDate(isSelected ? null : dateStr);
 								}

@@ -54,22 +54,6 @@ export interface WorkoutSession {
 	performedOn: string;
 }
 
-export interface LoadLog {
-	id: number;
-	userId: string;
-	exerciseId: number;
-	planId?: number;
-	loggedAt: string;
-	sets: LoadLogSet[];
-}
-
-export interface LoadLogSet {
-	id: number;
-	logId: number;
-	setNumber: number;
-	weight: number;
-}
-
 export type DayKey =
 	| "SEG"
 	| "TER"
@@ -88,6 +72,17 @@ export const DAY_LABELS: Record<DayKey, string> = {
 	SEX: "Sex",
 	SAB: "Sáb",
 	DOM: "Dom",
+	NONE: "Sem dia",
+};
+
+export const DAY_FULL_LABELS: Record<DayKey, string> = {
+	SEG: "Segunda",
+	TER: "Terça",
+	QUA: "Quarta",
+	QUI: "Quinta",
+	SEX: "Sexta",
+	SAB: "Sábado",
+	DOM: "Domingo",
 	NONE: "Sem dia",
 };
 

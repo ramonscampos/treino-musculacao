@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { COLOR_PRESETS, type User } from "../../types";
+import { Avatar } from "../ui/Avatar";
+import { ConfirmModal } from "../ui/ConfirmModal";
 import { ManageExercisesModal } from "./ManageExercisesModal";
 
 interface Props {
@@ -16,6 +18,7 @@ export function ConfigScreen({
 	onChanged,
 }: Props) {
 	const [showManageExercises, setShowManageExercises] = useState(false);
+	const [confirmSignOut, setConfirmSignOut] = useState(false);
 
 	return (
 		<div className="flex flex-col gap-6 p-6 pt-[calc(1.5rem+var(--safe-top))] pb-10 animate-fade-in">
@@ -36,26 +39,11 @@ export function ConfigScreen({
 					borderColor: "var(--card-border)",
 				}}
 			>
-				{user.avatarUrl ? (
-					<img
-						src={user.avatarUrl}
-						alt={user.name}
-						className="w-14 h-14 rounded-full object-cover border"
-						style={{ borderColor: "var(--accent-mute)" }}
-					/>
-				) : (
-					<div
-						className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-[1.4rem] border"
-						style={{
-							borderColor: "var(--accent-mute)",
-							background: "var(--accent-soft)",
-							color: "var(--accent-color)",
-							fontFamily: "Outfit",
-						}}
-					>
-						{user.name.charAt(0).toUpperCase()}
-					</div>
-				)}
+				<Avatar
+					name={user.name}
+					url={user.avatarUrl}
+					className="w-14 h-14 text-[1.4rem]"
+				/>
 				<div className="flex flex-col gap-0.5">
 					<span
 						className="text-[1rem] font-bold"
@@ -180,7 +168,7 @@ export function ConfigScreen({
 			{/* Sair da Conta */}
 			<button
 				type="button"
-				onClick={signOut}
+				onClick={() => setConfirmSignOut(true)}
 				className="flex items-center justify-center gap-2.5 w-full py-3.5 px-5 rounded-2xl font-semibold text-[0.92rem] transition-all active:scale-[0.97] cursor-pointer border mt-2"
 				style={{
 					background: "rgba(255, 78, 78, 0.05)",
@@ -210,6 +198,18 @@ export function ConfigScreen({
 				isOpen={showManageExercises}
 				onClose={() => setShowManageExercises(false)}
 				onChanged={onChanged}
+			/>
+
+			<ConfirmModal
+				isOpen={confirmSignOut}
+				title="Sair da conta?"
+				description="Você precisará entrar novamente para acessar seus treinos."
+				confirmText="Sair"
+				onConfirm={() => {
+					setConfirmSignOut(false);
+					signOut();
+				}}
+				onCancel={() => setConfirmSignOut(false)}
 			/>
 		</div>
 	);

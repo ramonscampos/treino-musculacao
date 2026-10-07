@@ -2,23 +2,28 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	deleteSession,
 	getSessionsInRange,
+	peekSessionsInRange,
 	upsertSession,
 } from "../../lib/queries/sessions";
-import { supabase } from "../../lib/supabase";
+import { buildSchedule, calcStreak, getMissedDates } from "../../lib/attendance";
 import {
 	formatLocalDate,
 	JS_DAY_TO_KEY,
+	type WorkoutPlan,
 	type WorkoutSession,
 } from "../../types";
-import { EvolutionChart } from "./EvolutionChart";
+import { useToast } from "../ui/Toast";
 import { MonthCalendar } from "./MonthCalendar";
 
 interface Props {
 	userId: string;
 	onSessionsChanged?: () => void;
 	restDays?: number;
-	workoutDayCodes?: string[];
+	plans: WorkoutPlan[];
 }
+
+const ALL_FROM = "2000-01-01";
+const ALL_TO = "2099-12-31";
 
 const PT_MONTHS = [
 	"Janeiro",
@@ -35,137 +40,64 @@ const PT_MONTHS = [
 	"Dezembro",
 ];
 
-function calcStreak(
-	sessions: WorkoutSession[],
-	workoutDayCodes: string[] = [],
-): number {
-	if (!sessions.length) return 0;
-
-	const performedDates = new Set(sessions.map((s) => s.performedOn));
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-
-	let oldestDateStr = sessions[0].performedOn;
-	for (const s of sessions) {
-		if (s.performedOn < oldestDateStr) {
-			oldestDateStr = s.performedOn;
-		}
-	}
-	const oldestDate = new Date(`${oldestDateStr}T00:00:00`);
-	oldestDate.setHours(0, 0, 0, 0);
-
-	const plannedDays = workoutDayCodes.length > 0
-		? workoutDayCodes
-		: ["SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
-
-	let streak = 0;
-	const currentDate = new Date(today);
-
-	while (currentDate >= oldestDate) {
-		const dateStr = formatLocalDate(currentDate);
-		const dayOfWeekKey = JS_DAY_TO_KEY[currentDate.getDay()];
-		const isPlanned = plannedDays.includes(dayOfWeekKey);
-		const workedOut = performedDates.has(dateStr);
-
-		const isToday = currentDate.getTime() === today.getTime();
-
-		if (workedOut) {
-			streak++;
-		} else {
-			if (!isToday && isPlanned) {
-				break;
-			}
-		}
-
-		currentDate.setDate(currentDate.getDate() - 1);
-	}
-
-	return streak;
-}
-
 export function Dashboard({
 	userId,
 	onSessionsChanged,
-	workoutDayCodes,
+	restDays,
+	plans,
 }: Props) {
-	const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-	const [exercises, setExercises] = useState<{ id: number; name: string }[]>(
-		[],
+	const { showToast } = useToast();
+	const schedule = useMemo(
+		() => buildSchedule(plans, restDays),
+		[plans, restDays],
 	);
 	const [month, setMonth] = useState(new Date().getMonth());
 	const [year, setYear] = useState(new Date().getFullYear());
 	const [selectedDate, setSelectedDate] = useState<string | null>(null);
-	const [allSessions, setAllSessions] = useState<WorkoutSession[]>([]);
-	const [loading, setLoading] = useState(true);
+	const [allSessions, setAllSessions] = useState<WorkoutSession[]>(
+		() => peekSessionsInRange(userId, ALL_FROM, ALL_TO) ?? [],
+	);
+	const [loading, setLoading] = useState(
+		() => !peekSessionsInRange(userId, ALL_FROM, ALL_TO),
+	);
 
 	const pad = (n: number) => String(n).padStart(2, "0");
 	const lastDay = new Date(year, month + 1, 0).getDate();
 	const from = `${year}-${pad(month + 1)}-01`;
 	const to = `${year}-${pad(month + 1)}-${pad(lastDay)}`;
 
-	const [prevParams, setPrevParams] = useState({ userId, from, to });
-	if (userId !== prevParams.userId || from !== prevParams.from || to !== prevParams.to) {
-		setPrevParams({ userId, from, to });
-		setLoading(true);
-	}
+	const sessions = useMemo(
+		() =>
+			allSessions.filter((s) => s.performedOn >= from && s.performedOn <= to),
+		[allSessions, from, to],
+	);
 
 	useEffect(() => {
 		let active = true;
-
-		async function loadData() {
-			try {
-				const loadChartExercises = async () => {
-					const { data: logs, error } = await supabase
-						.from("load_logs")
-						.select("exercise_id")
-						.eq("user_id", userId);
-					if (error) return [];
-					const counts = new Map<number, number>();
-					for (const row of logs ?? []) {
-						const id = row.exercise_id as number;
-						counts.set(id, (counts.get(id) ?? 0) + 1);
-					}
-					const eligible = Array.from(counts.entries())
-						.filter(([, c]) => c >= 2)
-						.map(([id]) => id);
-					if (eligible.length === 0) return [];
-					const { data: exData } = await supabase
-						.from("exercises")
-						.select("id, name")
-						.in("id", eligible);
-					return (exData ?? []).map((r) => ({
-						id: r.id as number,
-						name: r.name as string,
-					}));
-				};
-
-				const [sessionsData, allSessionsData, chartExs] = await Promise.all([
-					getSessionsInRange(userId, from, to),
-					getSessionsInRange(userId, "2000-01-01", "2099-12-31"),
-					loadChartExercises(),
-				]);
-
-				if (!active) return;
-				setSessions(sessionsData);
-				setAllSessions(allSessionsData);
-				setExercises(chartExs);
-			} catch (err) {
+		getSessionsInRange(userId, ALL_FROM, ALL_TO)
+			.then((data) => {
+				if (active) setAllSessions(data);
+			})
+			.catch((err) => {
 				console.error("Erro ao carregar dados do painel:", err);
-			} finally {
+				if (active) showToast("Não foi possível carregar seu resumo");
+			})
+			.finally(() => {
 				if (active) setLoading(false);
-			}
-		}
-
-		loadData();
-
+			});
 		return () => {
 			active = false;
 		};
-	}, [userId, from, to]);
+	}, [userId, showToast]);
 
 	const streak = useMemo(
-		() => calcStreak(allSessions, workoutDayCodes),
-		[allSessions, workoutDayCodes],
+		() => calcStreak(allSessions, schedule),
+		[allSessions, schedule],
+	);
+
+	const missedDates = useMemo(
+		() => getMissedDates(allSessions, schedule, from, to),
+		[allSessions, schedule, from, to],
 	);
 
 	const monthCount = useMemo(() => {
@@ -189,33 +121,33 @@ export function Dashboard({
 		const sundayObj = new Date(todayObj);
 		sundayObj.setDate(todayObj.getDate() - dayIdx);
 
-		const weekCodes = new Set<number>();
-		allSessions.forEach((s) => {
-			const d = new Date(`${s.performedOn}T00:00:00`);
-			if (d >= sundayObj) weekCodes.add(d.getDay());
-		});
+		const weekMissed = getMissedDates(
+			allSessions,
+			schedule,
+			formatLocalDate(sundayObj),
+			formatLocalDate(todayObj),
+		);
+		const performedDates = new Set(allSessions.map((s) => s.performedOn));
 		const letters = ["D", "S", "T", "Q", "Q", "S", "S"];
 		return letters.map((letter, i) => {
 			const d = new Date(sundayObj);
 			d.setDate(sundayObj.getDate() + i);
-			const isFuture = d > todayObj;
+			const dateStr = formatLocalDate(d);
 			const isToday = d.getTime() === todayObj.getTime();
-			const trained = weekCodes.has(i);
-
-			const dayOfWeek = JS_DAY_TO_KEY[i];
-			const isPlanned = (workoutDayCodes ?? []).includes(dayOfWeek);
+			const trained = performedDates.has(dateStr);
+			const isPlanned = schedule.trainingDays.has(JS_DAY_TO_KEY[i]);
 
 			let dotClass =
 				"w-8 h-8 rounded-full border-[1.5px] border-[rgba(255,255,255,0.1)] bg-transparent transition-all";
 			if (trained)
 				dotClass =
 					"w-8 h-8 rounded-full border-[1.5px] border-[var(--accent-color)] bg-[var(--accent-color)] transition-all";
+			else if (weekMissed.has(dateStr))
+				dotClass =
+					"w-8 h-8 rounded-full border-[1.5px] border-[rgba(255,78,78,0.6)] bg-[rgba(255,78,78,0.15)] transition-all";
 			else if (!isPlanned)
 				dotClass =
 					"w-8 h-8 rounded-full border-[1.5px] border-dashed border-[rgba(255,255,255,0.20)] bg-transparent transition-all opacity-60";
-			else if (!isFuture && !isToday)
-				dotClass =
-					"w-8 h-8 rounded-full border-[1.5px] border-[rgba(255,78,78,0.6)] bg-[rgba(255,78,78,0.15)] transition-all";
 
 			if (isToday)
 				dotClass +=
@@ -228,7 +160,7 @@ export function Dashboard({
 
 			return { id: `week-dot-${i}`, letter, dotClass, trained, isToday };
 		});
-	}, [allSessions, workoutDayCodes]);
+	}, [allSessions, schedule]);
 
 	function changeMonth(delta: number) {
 		const d = new Date(year, month + delta, 1);
@@ -238,32 +170,53 @@ export function Dashboard({
 
 	const toggleDateStatus = useCallback(
 		async (dateStr: string) => {
-			const isTrained = allSessions.some((s) => s.performedOn === dateStr);
-			if (isTrained) {
-				await deleteSession(userId, dateStr);
-			} else {
-				// Find a plan for this day to use as planId
-				const planId = 1; // fallback
-				await upsertSession(userId, planId, dateStr);
-			}
-			// Refresh all sessions
-			const updated = await getSessionsInRange(
-				userId,
-				"2000-01-01",
-				"2099-12-31",
-			);
-			setAllSessions(updated);
-			const monthUpdated = await getSessionsInRange(userId, from, to);
-			setSessions(monthUpdated);
+			const previous = allSessions.find((s) => s.performedOn === dateStr);
 
-			if (onSessionsChanged) {
-				onSessionsChanged();
+			const removeDate = (list: WorkoutSession[]) =>
+				list.filter((s) => s.performedOn !== dateStr);
+			const addSession = (session: WorkoutSession) => (list: WorkoutSession[]) =>
+				[...removeDate(list), session].sort((a, b) =>
+					a.performedOn.localeCompare(b.performedOn),
+				);
+
+			if (previous) {
+				setAllSessions(removeDate);
+				try {
+					await deleteSession(userId, dateStr);
+					onSessionsChanged?.();
+				} catch (err) {
+					console.error("Erro ao remover registro de treino:", err);
+					setAllSessions(addSession(previous));
+					showToast("Não foi possível remover o registro de treino");
+				}
+				return;
+			}
+
+			const dayKey = JS_DAY_TO_KEY[new Date(`${dateStr}T00:00:00`).getDay()];
+			const plan = plans.find((p) => p.suggestedDay === dayKey) ?? plans[0];
+			if (!plan) {
+				showToast("Crie um treino antes de registrar sessões");
+				return;
+			}
+
+			const optimistic: WorkoutSession = {
+				id: -Date.now(),
+				userId,
+				planId: plan.id,
+				performedOn: dateStr,
+			};
+			setAllSessions(addSession(optimistic));
+			try {
+				await upsertSession(userId, plan.id, dateStr);
+				onSessionsChanged?.();
+			} catch (err) {
+				console.error("Erro ao registrar treino:", err);
+				setAllSessions(removeDate);
+				showToast("Não foi possível registrar o treino");
 			}
 		},
-		[userId, allSessions, from, to, onSessionsChanged],
+		[userId, allSessions, plans, onSessionsChanged, showToast],
 	);
-
-
 
 	if (loading) {
 		return (
@@ -330,20 +283,6 @@ export function Dashboard({
 								</div>
 							))}
 						</div>
-					</div>
-				</div>
-
-				{/* Evolução de Cargas */}
-				<div className="mb-8">
-					<div className="h-3 bg-white/10 rounded w-36 mb-3" />
-					<div
-						className="p-8 rounded-[1.25rem]"
-						style={{
-							background: "var(--card-bg)",
-							border: "1px solid var(--card-border)",
-						}}
-					>
-						<div className="h-32 bg-white/5 rounded-lg w-full" />
 					</div>
 				</div>
 
@@ -497,43 +436,6 @@ export function Dashboard({
 				</div>
 			</div>
 
-			{/* Evolução de Cargas */}
-			<div className="mb-8">
-				<p className="text-[0.7rem] uppercase tracking-[0.15rem] text-(--text-muted) font-bold mb-3">
-					Evolução de cargas
-				</p>
-				{exercises.length > 0 ? (
-					<div
-						className="p-4 rounded-[1.25rem]"
-						style={{
-							background: "var(--card-bg)",
-							border: "1px solid var(--card-border)",
-						}}
-					>
-						{exercises.map((ex) => (
-							<EvolutionChart
-								key={ex.id}
-								userId={userId}
-								exerciseId={ex.id}
-								exerciseName={ex.name}
-							/>
-						))}
-					</div>
-				) : (
-					<div
-						className="p-8 rounded-[1.25rem] text-center text-[0.8rem] leading-relaxed"
-						style={{
-							background: "var(--card-bg)",
-							border: "1px solid var(--card-border)",
-							color: "var(--text-muted)",
-						}}
-					>
-						Continue treinando para ver sua evolução aqui! (Mínimo 2 registros
-						por exercício)
-					</div>
-				)}
-			</div>
-
 			{/* Frequência Mensal */}
 			<div className="mb-8">
 				<div className="flex items-center justify-between mb-4">
@@ -603,6 +505,7 @@ export function Dashboard({
 				</div>
 				<MonthCalendar
 					sessions={sessions}
+					missedDates={missedDates}
 					month={month}
 					year={year}
 					selectedDate={selectedDate}

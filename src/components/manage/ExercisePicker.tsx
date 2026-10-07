@@ -5,6 +5,7 @@ import {
 	getUserExercises,
 } from "../../lib/queries/manage";
 import { Modal } from "../ui/Modal";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	onSelect: (exercise: Exercise) => void;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function ExercisePicker({ onSelect, onCancel }: Props) {
+	const { showToast } = useToast();
 	const [query, setQuery] = useState("");
 	const [exercises, setExercises] = useState<Exercise[]>([]);
 	const [creating, setCreating] = useState(false);
@@ -25,7 +27,7 @@ export function ExercisePicker({ onSelect, onCancel }: Props) {
 		getUserExercises()
 			.then(setExercises)
 			.finally(() => setLoading(false));
-		setTimeout(() => inputRef.current?.focus(), 50);
+		setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 50);
 	}, []);
 
 	const [prevShowCreateForm, setPrevShowCreateForm] = useState(showCreateForm);
@@ -68,6 +70,7 @@ export function ExercisePicker({ onSelect, onCancel }: Props) {
 			setShowCreateForm(false);
 		} catch (err) {
 			console.error("Erro ao cadastrar exercício:", err);
+			showToast("Não foi possível cadastrar o exercício");
 		} finally {
 			setCreating(false);
 		}

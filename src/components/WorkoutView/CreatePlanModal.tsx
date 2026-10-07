@@ -6,6 +6,7 @@ import {
 } from "../../lib/queries/manage";
 import { DAY_LABELS, type DayKey } from "../../types";
 import { Modal } from "../ui/Modal";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	isOpen: boolean;
@@ -35,6 +36,7 @@ export function CreatePlanModal({
 	onClose,
 	onChanged,
 }: Props) {
+	const { showToast } = useToast();
 	const [newName, setNewName] = useState("");
 	const [newDay, setNewDay] = useState<DayKey>("NONE");
 	const [saving, setSaving] = useState(false);
@@ -55,7 +57,7 @@ export function CreatePlanModal({
 		if (isOpen) {
 			if (!isRestDay) {
 				const timer = setTimeout(() => {
-					inputRef.current?.focus();
+					inputRef.current?.focus({ preventScroll: true });
 				}, 320); // wait for slide-up animation
 				return () => clearTimeout(timer);
 			}
@@ -92,6 +94,7 @@ export function CreatePlanModal({
 			onClose();
 		} catch (err) {
 			console.error("Erro ao criar plano de treino:", err);
+			showToast("Não foi possível criar o treino");
 		} finally {
 			setSaving(false);
 		}

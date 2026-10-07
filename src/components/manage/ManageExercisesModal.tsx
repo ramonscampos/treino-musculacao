@@ -7,6 +7,7 @@ import {
 } from "../../lib/queries/manage";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { Modal } from "../ui/Modal";
+import { useToast } from "../ui/Toast";
 
 interface Props {
 	isOpen: boolean;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
+	const { showToast } = useToast();
 	const [exercises, setExercises] = useState<Exercise[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -32,7 +34,7 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 	// Focus the input when editing starts
 	useEffect(() => {
 		if (editingId !== null) {
-			editInputRef.current?.focus();
+			editInputRef.current?.focus({ preventScroll: true });
 		}
 	}, [editingId]);
 
@@ -49,6 +51,7 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 			setExercises(data);
 		} catch (err) {
 			console.error("Erro ao carregar exercícios:", err);
+			showToast("Não foi possível carregar os exercícios");
 		} finally {
 			setLoading(false);
 		}
@@ -58,10 +61,13 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 		if (isOpen) {
 			getUserExercises()
 				.then(setExercises)
-				.catch((err) => console.error("Erro ao carregar exercícios:", err))
+				.catch((err) => {
+					console.error("Erro ao carregar exercícios:", err);
+					showToast("Não foi possível carregar os exercícios");
+				})
 				.finally(() => setLoading(false));
 		}
-	}, [isOpen]);
+	}, [isOpen, showToast]);
 
 	async function handleEdit(exercise: Exercise) {
 		setEditingId(exercise.id);
@@ -88,7 +94,8 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 			if (onChanged) onChanged();
 		} catch (err) {
 			console.error("Erro ao atualizar exercício:", err);
-			alert("Erro ao salvar alterações.");
+			setConfirmEditData(null);
+			showToast("Não foi possível salvar as alterações");
 		}
 	}
 
@@ -107,7 +114,8 @@ export function ManageExercisesModal({ isOpen, onClose, onChanged }: Props) {
 			if (onChanged) onChanged();
 		} catch (err) {
 			console.error("Erro ao deletar exercício:", err);
-			alert("Erro ao excluir exercício.");
+			setConfirmDeleteId(null);
+			showToast("Não foi possível excluir o exercício");
 		}
 	}
 

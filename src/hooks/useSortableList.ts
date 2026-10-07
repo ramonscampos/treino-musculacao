@@ -1,5 +1,6 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { useCallback, useState } from "react";
+import { useToast } from "../components/ui/Toast";
 
 type ReorderFn = (items: { id: number; sortOrder: number }[]) => Promise<void>;
 
@@ -12,6 +13,7 @@ export function useSortableList<T extends { id: number }>(
 	persistReorder: ReorderFn,
 ) {
 	const [items, setItems] = useState<T[]>(initial);
+	const { showToast } = useToast();
 
 	const handleDragEnd = useCallback(
 		(activeId: number, overId: number) => {
@@ -26,12 +28,16 @@ export function useSortableList<T extends { id: number }>(
 				// Persist in background — don't await so UI is instant
 				persistReorder(
 					next.map((item, idx) => ({ id: item.id, sortOrder: idx })),
-				).catch(console.error);
+				).catch((err) => {
+					console.error("Erro ao reordenar:", err);
+					setItems(prev);
+					showToast("Não foi possível salvar a nova ordem");
+				});
 
 				return next;
 			});
 		},
-		[persistReorder],
+		[persistReorder, showToast],
 	);
 
 	// Sync when the parent prop changes (e.g. after a refetch)

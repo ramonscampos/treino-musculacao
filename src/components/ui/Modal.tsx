@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 interface Props {
 	isOpen: boolean;
@@ -27,7 +28,6 @@ export function Modal({
 			const timer = setTimeout(() => {
 				setActive(true);
 			}, 10);
-			document.body.style.overflow = "hidden";
 			return () => clearTimeout(timer);
 		}
 		setTimeout(() => {
@@ -39,7 +39,6 @@ export function Modal({
 			},
 			variant === "fullscreen" ? 420 : 300,
 		);
-		document.body.style.overflow = "";
 		return () => clearTimeout(timer);
 	}, [isOpen, variant]);
 
@@ -55,11 +54,7 @@ export function Modal({
 		};
 	}, [isOpen, onClose]);
 
-	useEffect(() => {
-		return () => {
-			document.body.style.overflow = "";
-		};
-	}, []);
+	useScrollLock(isOpen);
 
 	if (!shouldRender) return null;
 
